@@ -1,0 +1,104 @@
+# Training Configuration for Fraud Detection Model
+
+# Data Configuration
+data:
+  raw_data_path: "data/raw/transactions.csv"
+  processed_data_path: "data/processed/"
+  test_size: 0.2
+  validation_size: 0.2
+  random_state: 42
+  
+  # Data generation parameters (reduced for quick demos)
+  n_samples: 20000
+  fraud_rate: 0.02  # 2% fraud rate (realistic)
+  
+# Feature Engineering
+features:
+  categorical_features:
+    - "merchant_category"
+    - "transaction_type"
+    - "device_type"
+  
+  numerical_features:
+    - "amount"
+    - "hour_of_day"
+    - "day_of_week"
+    - "user_transaction_frequency"
+    - "user_avg_amount"
+    - "amount_zscore"
+  
+  target_column: "is_fraud"
+  
+  # Feature engineering parameters
+  lookback_days: 30  # Days to look back for user behavior features
+  min_user_transactions: 5  # Minimum transactions for user features
+
+# Model Training Configuration
+models:
+  output_dir: "models"
+
+  logistic_regression:
+    enabled: true
+    hyperparameters:
+      C: [0.1, 1.0]
+      max_iter: [500]
+      class_weight: ["balanced"]
+      solver: ["liblinear"]
+    
+  # Keep disabled for faster runs in the intro path; enable later if desired
+  xgboost:
+    enabled: false
+    hyperparameters:
+      n_estimators: [100]
+      max_depth: [3]
+      learning_rate: [0.1]
+      scale_pos_weight: [1]
+
+  # Optional: allow overriding RandomForest grid in trainer fallback
+  random_forest:
+    enabled: true
+    hyperparameters:
+      n_estimators: [100]
+      max_depth: [5, null]
+      min_samples_split: [2]
+      min_samples_leaf: [1]
+
+# Cross-validation
+cross_validation:
+  cv_folds: 3
+  scoring: "roc_auc"
+  n_jobs: -1
+
+# MLflow Configuration
+mlflow:
+  experiment_name: "fraud-detection"
+  tracking_uri: "file:./mlruns"
+  model_name: "fraud-detector"
+  
+  # Autolog settings
+  autolog:
+    log_input_examples: true
+    log_model_signatures: true
+    log_models: true
+
+# Model Evaluation
+evaluation:
+  metrics:
+    - "accuracy"
+    - "precision"
+    - "recall"
+    - "f1_score"
+    - "roc_auc"
+    - "average_precision"
+  
+  # Thresholds for model acceptance
+  minimum_metrics:
+    roc_auc: 0.85
+    precision: 0.70
+    recall: 0.70
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/training.log"

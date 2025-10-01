@@ -1,0 +1,27 @@
+{
+  "best_model": "logistic_regression",
+  "best_model_metrics": {
+    "train_accuracy": 0.6476166666666666,
+    "train_precision": 0.034889687018984095,
+    "train_recall": 0.6233333333333333,
+    "train_f1": 0.06608065727284775,
+    "train_roc_auc": 0.6855251984126983,
+    "train_avg_precision": 0.047128884801402184,
+    "val_accuracy": 0.6474,
+    "val_precision": 0.034043149341552253,
+    "val_recall": 0.6075,
+    "val_f1": 0.06447333510214912,
+    "val_roc_auc": 0.6771975765306123,
+    "val_avg_precision": 0.04317160354656753
+  },
+  "test_metrics": {
+    "test_accuracy": 0.6495,
+    "test_precision": 0.031471505528778,
+    "test_recall": 0.555,
+    "test_f1": 0.05956533404883284,
+    "test_roc_auc": 0.6571843112244897,
+    "test_avg_precision": 0.040765989205313796
+  },
+  "feature_count": 52,
+  "model_artifact": "models/logistic_regression_final_model.joblib"
+}

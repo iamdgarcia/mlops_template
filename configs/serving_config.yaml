@@ -1,0 +1,98 @@
+# Serving Configuration for Fraud Detection API
+
+# API Configuration
+api:
+  title: "Fraud Detection API"
+  description: "Real-time fraud detection service for financial transactions"
+  version: "1.0.0"
+  host: "0.0.0.0"
+  port: 8000
+  reload: false
+  workers: 1
+
+# Model Configuration
+model:
+  registry_uri: "file:./mlruns"
+  model_name: "fraud-detector"
+  model_version: "latest"  # Can be "latest", "production", or specific version number
+  model_stage: "production"  # MLflow model stage
+  use_mlflow: true
+  local_model_path: "models/xgboost_final_model.joblib"
+  
+  # Model loading
+  cache_model: true
+  model_reload_interval: 3600  # seconds (1 hour)
+
+# Prediction Configuration
+prediction:
+  # Default threshold for binary classification
+  fraud_threshold: 0.5
+  
+  # Input validation
+  max_amount: 1000000.0  # Maximum transaction amount
+  min_amount: 0.01      # Minimum transaction amount
+  
+  # Rate limiting
+  max_requests_per_minute: 1000
+  
+# Monitoring Configuration
+monitoring:
+  enable_drift_detection: true
+  drift_threshold: 0.05
+  drift_window_size: 1000  # Number of predictions for drift calculation
+  
+  # Performance monitoring
+  log_predictions: true
+  log_performance_metrics: true
+  metrics_calculation_interval: 3600  # seconds
+  
+  # Data storage for monitoring
+  prediction_log_path: "data/logs/predictions.csv"
+  metrics_log_path: "data/logs/metrics.csv"
+
+# Health Check Configuration
+health_check:
+  enable: true
+  timeout: 30  # seconds
+  check_model_loaded: true
+  check_mlflow_connection: true
+
+# CORS Configuration
+cors:
+  allow_origins: ["*"]
+  allow_credentials: true
+  allow_methods: ["GET", "POST"]
+  allow_headers: ["*"]
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/serving.log"
+  
+  # Request/Response logging
+  log_requests: true
+  log_responses: false  # Don't log responses (may contain sensitive data)
+
+# Security Configuration
+security:
+  # API Key authentication (optional)
+  require_api_key: false
+  api_key_header: "X-API-Key"
+  
+  # Input sanitization
+  sanitize_inputs: true
+  max_string_length: 100
+
+# Performance Configuration
+performance:
+  # Async settings
+  max_concurrent_requests: 100
+  
+  # Timeouts
+  request_timeout: 30
+  model_prediction_timeout: 10
+  
+  # Caching
+  enable_response_caching: false
+  cache_ttl: 300  # seconds
