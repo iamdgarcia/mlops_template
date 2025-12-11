@@ -1,0 +1,42 @@
+# Development and Testing Dependencies
+# Install with: pip install -r requirements-dev.txt
+# These dependencies are NOT needed in production containers
+
+## Testing Framework
+pytest~=7.4.0          # Testing framework
+pytest-cov~=4.1.0      # Test coverage reporting
+pytest-mock~=3.11.0    # Mocking support for tests
+pytest-asyncio~=0.21.0 # Async test support
+
+## Code Quality and Formatting
+black~=23.1.0          # Code formatter
+flake8~=6.0.0          # Linting and style checking
+isort~=5.12.0          # Import statement sorting
+mypy~=1.4.0            # Static type checking
+pylint~=2.17.0         # Comprehensive code analysis
+
+## Pre-commit Hooks
+pre-commit~=3.3.0      # Git hook framework for code quality checks
+
+## Jupyter Notebook Support
+jupyter~=1.0.0         # Jupyter notebook environment
+ipykernel~=6.25.0      # IPython kernel for Jupyter
+nbconvert~=7.7.0       # Convert notebooks to other formats
+nbformat~=5.9.0        # Notebook format handling
+
+## Visualization (for notebooks and analysis)
+matplotlib~=3.7.0      # Basic plotting
+seaborn~=0.12.0        # Statistical visualization
+plotly~=5.15.0         # Interactive visualizations
+
+## Documentation
+mkdocs~=1.5.0          # Documentation generator (optional)
+mkdocs-material~=9.1.0 # Material theme for MkDocs (optional)
+
+## Security and Vulnerability Scanning
+safety~=2.3.0          # Dependency vulnerability scanner
+bandit~=1.7.0          # Security linter for Python code
+
+## Development Utilities
+ipdb~=0.13.0           # Enhanced debugger
+python-dotenv~=1.0.0   # Environment variable management

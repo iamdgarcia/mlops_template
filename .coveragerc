@@ -1,0 +1,99 @@
+# Coverage Configuration for MLOps Fraud Detection
+
+[run]
+# Measure coverage for src/ package
+source = src
+
+# Files to omit from coverage
+omit =
+    */tests/*
+    */test_*.py
+    *_test.py
+    */__pycache__/*
+    */site-packages/*
+    */notebooks/*
+    */venv/*
+    */.venv/*
+    */scripts/*
+    setup.py
+
+# Enable branch coverage (if/else branches)
+branch = True
+
+# Run coverage in parallel mode (for multiprocessing)
+parallel = False
+
+# Measure coverage in subprocesses
+concurrency = multiprocessing
+
+[report]
+# Precision for coverage percentages
+precision = 2
+
+# Show missing lines
+show_missing = True
+
+# Skip covered files in output
+skip_covered = False
+
+# Skip empty files
+skip_empty = True
+
+# Fail if coverage is below this threshold
+fail_under = 60
+
+# Lines to exclude from coverage
+exclude_lines =
+    # Standard pragma
+    pragma: no cover
+    
+    # Debug-only code
+    def __repr__
+    def __str__
+    
+    # Abstract methods
+    @abc.abstractmethod
+    @abstractmethod
+    
+    # Type checking code
+    if TYPE_CHECKING:
+    if typing.TYPE_CHECKING:
+    
+    # Non-runnable code
+    if __name__ == .__main__.:
+    
+    # Defensive programming
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Protocol definitions
+    class .*\bProtocol\):
+    @(abc\.)?abstractmethod
+    
+    # Pass statements
+    pass
+    
+    # Ellipsis for stub files
+    \.\.\.
+
+# Regex patterns for code to exclude
+partial_branches =
+    pragma: no branch
+    if (typing\.)?TYPE_CHECKING:
+    if __name__ == .__main__.:
+
+[html]
+# Directory for HTML coverage report
+directory = htmlcov
+
+# Title for HTML report
+title = MLOps Fraud Detection - Coverage Report
+
+[xml]
+# Output file for XML coverage report
+output = coverage.xml
+
+[json]
+# Output file for JSON coverage report
+output = coverage.json
+show_contexts = True

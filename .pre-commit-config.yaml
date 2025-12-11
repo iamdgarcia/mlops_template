@@ -10,8 +10,9 @@ repos:
   - repo: local
     hooks:
       - id: run-tests
-        name: Run ML Pipeline Tests
-        entry: python test_integration.py
+        name: Run Unit Tests
+        entry: pytest tests/ -v --tb=short -m "not slow"
         language: system
         pass_filenames: false
         always_run: true
+        stages: [commit]

@@ -1,0 +1,83 @@
+# Git and version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Python virtual environments
+.venv
+venv
+env
+ENV
+
+# Python cache and compiled files
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing and coverage
+.pytest_cache
+.coverage
+.coveragerc
+htmlcov/
+.tox/
+.hypothesis/
+
+# Development tools
+.pre-commit-config.yaml
+.editorconfig
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation (keep only essential README)
+docs/
+*.md
+!README.md
+
+# Notebooks (not needed in production container)
+notebooks/
+*.ipynb
+.ipynb_checkpoints
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Data files (too large for container build)
+data/raw/
+data/inference_results/
+data/drift_alerts/
+*.csv
+*.parquet
+*.pkl
+
+# MLflow artifacts (use volume mounts instead)
+mlruns/
+mlartifacts/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# CI/CD files
+.github/workflows/
+
+# Package distribution
+dist/
+build/
+*.egg-info/

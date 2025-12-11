@@ -1,0 +1,40 @@
+# Ignore all data files to prevent bloating the repository
+# Keep directory structure by tracking this .gitignore
+
+# Large data files
+*.csv
+*.parquet
+*.json
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+
+# Compressed archives
+*.zip
+*.tar.gz
+*.tar
+*.gz
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Model artifacts (should be in models/ directory instead)
+*.pt
+*.pth
+*.ckpt
+
+# Keep directory structure
+!.gitignore
+
+# Keep placeholder files if they exist
+!README.md
+!.gitkeep
+
+# Subdirectories - apply same rules
+raw/*.csv
+raw/*.parquet
+inference_results/*.csv
+drift_alerts/*.json
