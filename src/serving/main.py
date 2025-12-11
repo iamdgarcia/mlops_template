@@ -321,7 +321,7 @@ if __name__ == "__main__":
     api_cfg = config.get("api", {}) if config else {}
     uvicorn.run(
         "src.serving.main:app",
-        host=api_cfg.get("host", "0.0.0.0"),
+        host=api_cfg.get("host", "0.0.0.0"),  # nosec B104 - Required for Docker container
         port=api_cfg.get("port", 8000),
         reload=api_cfg.get("reload", False),
         workers=api_cfg.get("workers", 1),
