@@ -15,20 +15,26 @@ def temp_config_dir():
     with tempfile.TemporaryDirectory() as tmpdir:
         config_dir = Path(tmpdir)
 
-        # Create sample training config
+        # Create sample training config with all required sections
         training_config = {
             "data": {
                 "raw_data_path": "data/raw/transactions.csv",
                 "processed_data_path": "data/transactions_processed.csv",
+                "test_size": 0.2,
             },
-            "model": {"type": "random_forest", "random_state": 42},
-            "training": {"test_size": 0.2, "cv_folds": 5},
+            "features": {"selected_features": ["amount", "merchant_id"]},
+            "models": {
+                "random_forest": {"enabled": True, "n_estimators": 100},
+                "logistic_regression": {"enabled": False},
+            },
+            "mlflow": {"tracking_uri": "sqlite:///mlruns.db", "experiment_name": "test"},
         }
 
-        # Create sample serving config
+        # Create sample serving config with all required sections
         serving_config = {
             "api": {"host": "0.0.0.0", "port": 8000, "reload": False},
             "model": {"path": "models/random_forest_final_model.joblib"},
+            "prediction": {"fraud_threshold": 0.5, "batch_size": 100},
         }
 
         # Write configs
@@ -55,9 +61,9 @@ class TestConfigManager:
         config = manager.load_config("training_config")
 
         assert "data" in config
-        assert "model" in config
-        assert "training" in config
-        assert config["model"]["type"] == "random_forest"
+        assert "features" in config
+        assert "models" in config
+        assert config["models"]["random_forest"]["enabled"] is True
 
     def test_load_config_caching(self, temp_config_dir):
         """Test that configs are cached."""
@@ -83,7 +89,7 @@ class TestConfigManager:
         config = manager.get_training_config()
 
         assert "data" in config
-        assert "model" in config
+        assert "features" in config
 
     def test_get_serving_config(self, temp_config_dir):
         """Test get_serving_config helper."""
@@ -92,6 +98,7 @@ class TestConfigManager:
 
         assert "api" in config
         assert "model" in config
+        assert "prediction" in config
 
     def test_get_config_value(self, temp_config_dir):
         """Test retrieving nested config values."""
@@ -99,8 +106,8 @@ class TestConfigManager:
         config = manager.load_config("training_config")
 
         # Test nested access
-        assert config["model"]["type"] == "random_forest"
-        assert config["training"]["test_size"] == 0.2
+        assert config["models"]["random_forest"]["enabled"] is True
+        assert config["data"]["test_size"] == 0.2
 
     def test_invalid_yaml(self, temp_config_dir):
         """Test handling of invalid YAML."""

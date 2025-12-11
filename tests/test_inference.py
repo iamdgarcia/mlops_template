@@ -118,7 +118,7 @@ class TestInferencePipeline:
 
         try:
             pipeline = InferencePipeline()
-            pipeline.load_model(model_path)
+            pipeline.load_model_from_file(model_path)  # Actual method name
             assert pipeline.model is not None
         finally:
             Path(model_path).unlink()
