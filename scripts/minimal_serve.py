@@ -11,11 +11,11 @@ the same feature engineering as training.
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from datetime import datetime
 
 from src.config import ConfigManager
 from src.inference import InferencePipeline, create_sample_transaction

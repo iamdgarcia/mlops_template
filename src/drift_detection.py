@@ -7,16 +7,17 @@ This module provides comprehensive drift detection capabilities including:
 - Alert generation and retraining triggers
 """
 
-import pandas as pd
-import numpy as np
 import json
-import joblib
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Tuple
 import logging
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
+import numpy as np
+import pandas as pd
 from scipy import stats
-from scipy.stats import ks_2samp, chi2_contingency, wasserstein_distance
-from sklearn.metrics import roc_auc_score, precision_score, recall_score, f1_score
+from scipy.stats import chi2_contingency, ks_2samp, wasserstein_distance
+from sklearn.metrics import f1_score, precision_score, recall_score, roc_auc_score
 
 logger = logging.getLogger(__name__)
 

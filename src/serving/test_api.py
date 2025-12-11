@@ -5,12 +5,13 @@ This script tests the serving API with various transaction scenarios
 to ensure proper functionality and performance.
 """
 
-import requests
 import json
 import time
 from datetime import datetime
 from typing import Dict, List, Optional
+
 import pandas as pd
+import requests
 
 
 class FraudDetectionAPITester:

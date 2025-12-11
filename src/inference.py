@@ -32,9 +32,10 @@ def _load_feature_store(path: Path = FEATURE_STORE_PATH) -> List[str]:
 
     try:
         payload = json.loads(path.read_text())
-        features = payload.get("selected_features", [])
+        # Support both "selected_features" and "features" keys for backward compatibility
+        features = payload.get("selected_features", payload.get("features", []))
         if not isinstance(features, list):
-            raise ValueError("selected_features must be a list")
+            raise ValueError("selected_features or features must be a list")
         return features
     except Exception as exc:  # noqa: BLE001
         logger.error("Failed to load feature metadata from %s: %s", path, exc)
@@ -302,9 +303,10 @@ class AutomatedRetrainingSystem:
 
 def create_sample_transaction() -> Dict[str, Any]:
     """Return a random-but-reasonable sample transaction for demos."""
-    from datetime import datetime, timedelta
-    import numpy as np
     import random
+    from datetime import datetime, timedelta
+
+    import numpy as np
 
     merchant_categories = [
         "grocery",

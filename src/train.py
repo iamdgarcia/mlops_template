@@ -5,31 +5,32 @@ This module provides functions for training, evaluating, and tracking
 machine learning models with MLflow integration.
 """
 
-import pandas as pd
-import numpy as np
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    average_precision_score,
-    confusion_matrix,
-    roc_curve,
-    precision_recall_curve,
-)
+import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib
+import matplotlib.pyplot as plt
 import mlflow
 import mlflow.sklearn
-from mlflow.models.signature import infer_signature
-from typing import Dict, List, Tuple, Any, Optional
-import logging
-import joblib
-from pathlib import Path
-import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+from mlflow.models.signature import infer_signature
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
+    confusion_matrix,
+    f1_score,
+    precision_recall_curve,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+    roc_curve,
+)
+from sklearn.model_selection import GridSearchCV
 
 # Try to import xgboost, fall back gracefully if not available
 try:
@@ -458,22 +459,58 @@ class ModelTrainer:
         except Exception as e:
             logger.warning(f"Error creating plots: {e}")
 
-    def save_model(self, model: Any, model_name: str, output_dir: str) -> None:
+    def evaluate_model(self, model: Any, X_test: pd.DataFrame, y_test: pd.Series) -> Dict[str, Any]:
+        """
+        Evaluate a trained model.
+
+        Args:
+            model: Trained model
+            X_test: Test features
+            y_test: Test targets
+
+        Returns:
+            Dictionary of evaluation metrics
+        """
+        # Make predictions
+        y_pred = model.predict(X_test)
+        y_proba = model.predict_proba(X_test)[:, 1]
+
+        # Calculate metrics
+        metrics = {
+            "accuracy": accuracy_score(y_test, y_pred),
+            "precision": precision_score(y_test, y_pred, zero_division=0),
+            "recall": recall_score(y_test, y_pred, zero_division=0),
+            "f1_score": f1_score(y_test, y_pred, zero_division=0),
+            "roc_auc": roc_auc_score(y_test, y_proba),
+            "avg_precision": average_precision_score(y_test, y_proba),
+            "confusion_matrix": confusion_matrix(y_test, y_pred),
+        }
+
+        return metrics
+
+    def save_model(self, model: Any, model_path: str, model_name: Optional[str] = None, output_dir: Optional[str] = None) -> None:
         """
         Save model to disk.
 
         Args:
             model: Trained model
-            model_name: Name of the model
-            output_dir: Output directory
+            model_path: Path to save the model (can be string or Path)
+            model_name: Name of the model (optional, for backward compatibility)
+            output_dir: Output directory (optional, for backward compatibility)
         """
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
+        # Handle both old (model, model_name, output_dir) and new (model, model_path) signatures
+        if output_dir is not None:
+            # Old signature: save_model(model, model_name, output_dir)
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
+            final_path = output_path / f"{model_path}.joblib"
+        else:
+            # New signature: save_model(model, model_path)
+            final_path = Path(model_path)
+            final_path.parent.mkdir(parents=True, exist_ok=True)
 
-        model_path = output_path / f"{model_name}.joblib"
-        joblib.dump(model, model_path)
-
-        logger.info(f"Saved {model_name} to {model_path}")
+        joblib.dump(model, final_path)
+        logger.info(f"Saved model to {final_path}")
 
 
 def train_fraud_detection_models(

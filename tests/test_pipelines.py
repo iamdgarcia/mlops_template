@@ -7,8 +7,8 @@ import pandas as pd
 import pytest
 from sklearn.linear_model import LogisticRegression
 
+from src.inference import InferencePipeline
 from src.pipelines import run_data_preparation
-from src.pipelines.inference_pipeline import InferencePipeline
 
 
 def _small_config(tmp_path: Path) -> dict:

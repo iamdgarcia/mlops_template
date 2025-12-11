@@ -1,5 +1,5 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from src.data_generation import TransactionDataGenerator
 from src.features import FeatureEngineer

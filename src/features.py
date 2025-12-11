@@ -5,11 +5,12 @@ This module provides functions for creating, transforming, and selecting
 features that are relevant for fraud detection models.
 """
 
-import pandas as pd
-import numpy as np
-from typing import Dict, List, Optional, Any
 import logging
 from datetime import timedelta
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -266,9 +267,13 @@ class FeatureEngineer:
         df_freq["hours_since_last_transaction"] = df_freq["time_since_last_transaction"] / 3600
 
         # Transaction frequency features (transactions per day)
-        df_freq["transactions_per_day"] = (
-            df_freq["user_transaction_count"] / 30.0
-        )  # Assuming 30-day window
+        # Only calculate if user_transaction_count exists
+        if "user_transaction_count" in df_freq.columns:
+            df_freq["transactions_per_day"] = (
+                df_freq["user_transaction_count"] / 30.0
+            )  # Assuming 30-day window
+        else:
+            df_freq["transactions_per_day"] = 0.0
 
         # Quick successive transactions (within 1 hour)
         df_freq["is_quick_transaction"] = (df_freq["hours_since_last_transaction"] <= 1).astype(int)

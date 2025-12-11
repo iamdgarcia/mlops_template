@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional
 
 from ..config import setup_logging
 from ..train import ModelTrainer
-from .data_pipeline import run_data_preparation, load_config
+from .data_pipeline import load_config, run_data_preparation
 
 
 def _score_model(metrics: Dict[str, Any]) -> float:

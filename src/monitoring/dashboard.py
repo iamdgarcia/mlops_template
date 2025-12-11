@@ -5,17 +5,18 @@ This dashboard provides real-time monitoring and analytics for the
 fraud detection API, including prediction logs and performance metrics.
 """
 
-import streamlit as st
-import pandas as pd
+import json
+import os
+import time
+from datetime import datetime, timedelta
+
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import requests
-import json
-from datetime import datetime, timedelta
-import time
-import os
+import streamlit as st
+from plotly.subplots import make_subplots
 
 # Page configuration
 st.set_page_config(
