@@ -137,8 +137,14 @@ class TestFeatureParity:
         model_path = tmp_path / "test_model.joblib"
         joblib.dump(mock_model, model_path)
 
-        # Create inference pipeline
-        pipeline = InferencePipeline(model_path=str(model_path))
+        # Create a feature store file with the correct features
+        feature_store_path = tmp_path / "selected_features.json"
+        feature_store_path.write_text(json.dumps({"features": feature_cols}))
+
+        # Create inference pipeline with custom feature store path
+        pipeline = InferencePipeline(
+            model_path=str(model_path), feature_store_path=feature_store_path
+        )
 
         # Preprocess should use FeatureEngineer
         preprocessed = pipeline.preprocess_data(sample_raw_data)
