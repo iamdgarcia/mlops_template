@@ -7,7 +7,7 @@ services:
       - "8000:8000"
     volumes:
       - ./logs:/app/logs
-      - ./data/logs:/app/data/logs
+      - ./data:/app/data
       - ./models:/app/models
     environment:
       - PYTHONPATH=/app

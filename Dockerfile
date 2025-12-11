@@ -20,11 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY src/ ./src/
 COPY configs/ ./configs/
-COPY models/ ./models/
-COPY data/ ./data/
 
-# Create necessary directories
-RUN mkdir -p logs data/logs
+# Create necessary directories for runtime
+# Note: Models and data are excluded in .dockerignore and should be mounted as volumes
+# This keeps the image lightweight and allows for easy model updates without rebuilding
+RUN mkdir -p logs data models
 
 # Set environment variables
 ENV PYTHONPATH=/app

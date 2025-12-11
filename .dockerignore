@@ -49,13 +49,17 @@ tests/
 test_*.py
 *_test.py
 
-# Data files (too large for container build)
+# Data files (mount as volumes in production instead of copying)
 data/raw/
 data/inference_results/
 data/drift_alerts/
 *.csv
 *.parquet
 *.pkl
+
+# Models (mount as volumes in production for easier updates)
+models/
+*.joblib
 
 # MLflow artifacts (use volume mounts instead)
 mlruns/
