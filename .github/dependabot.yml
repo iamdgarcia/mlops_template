@@ -33,9 +33,6 @@ updates:
           - "black*"
           - "flake8*"
           - "isort*"
-    # Security updates
-    security-updates:
-      enabled: true
     
   # Monitor GitHub Actions
   - package-ecosystem: "github-actions"

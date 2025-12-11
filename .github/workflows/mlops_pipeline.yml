@@ -42,7 +42,7 @@ jobs:
         bandit -r src/ -ll -f screen
     
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-reports
@@ -153,7 +153,7 @@ jobs:
         echo "✓ All required data files created"
     
     - name: Upload pipeline artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pipeline-outputs
         path: |
@@ -183,7 +183,7 @@ jobs:
         pip install -r requirements.txt
     
     - name: Download pipeline artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: pipeline-outputs
     
@@ -207,7 +207,7 @@ jobs:
         '
     
     - name: Upload model artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: trained-models
         path: |
@@ -252,7 +252,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Download trained models
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: trained-models
     
@@ -286,7 +286,7 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Download trained models
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: trained-models
     
