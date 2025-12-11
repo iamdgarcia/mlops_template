@@ -25,7 +25,9 @@ FEATURE_STORE_PATH = Path("data/selected_features.json")
 def _load_feature_store(path: Path = FEATURE_STORE_PATH) -> List[str]:
     """Load the persisted feature list used during training."""
     if not path.exists():
-        logger.warning("Feature store file not found; feature selection will use on-the-fly columns")
+        logger.warning(
+            "Feature store file not found; feature selection will use on-the-fly columns"
+        )
         return []
 
     try:
@@ -58,7 +60,9 @@ class InferencePipeline:
         elif mlflow_model_uri:
             self.load_model_from_mlflow(mlflow_model_uri)
         else:
-            logger.warning("InferencePipeline instantiated without a model; call load_model_* explicitly")
+            logger.warning(
+                "InferencePipeline instantiated without a model; call load_model_* explicitly"
+            )
 
     # ------------------------------------------------------------------
     # Model loading helpers
@@ -102,7 +106,9 @@ class InferencePipeline:
         engineered = self.feature_engineer.create_all_features(raw_data)
         feature_names = self.feature_names or self.feature_engineer.get_feature_names(engineered)
 
-        missing_features = [feature for feature in feature_names if feature not in engineered.columns]
+        missing_features = [
+            feature for feature in feature_names if feature not in engineered.columns
+        ]
         if missing_features:
             logger.debug("Adding %d missing feature columns with zeros", len(missing_features))
             for column in missing_features:
@@ -110,10 +116,14 @@ class InferencePipeline:
 
         return engineered[feature_names]
 
-    def predict_batch(self, raw_data: pd.DataFrame, include_probabilities: bool = True) -> pd.DataFrame:
+    def predict_batch(
+        self, raw_data: pd.DataFrame, include_probabilities: bool = True
+    ) -> pd.DataFrame:
         """Run batch inference on a dataframe."""
         if self.model is None:
-            raise ValueError("Model not loaded. Call load_model_from_file or load_model_from_mlflow first.")
+            raise ValueError(
+                "Model not loaded. Call load_model_from_file or load_model_from_mlflow first."
+            )
 
         processed = self.preprocess_data(raw_data)
         predictions = self.model.predict(processed)
@@ -130,7 +140,9 @@ class InferencePipeline:
         logger.info("Generated %d predictions", len(result))
         return result
 
-    def predict_single(self, transaction_data: Dict[str, Any], include_probabilities: bool = True) -> Dict[str, Any]:
+    def predict_single(
+        self, transaction_data: Dict[str, Any], include_probabilities: bool = True
+    ) -> Dict[str, Any]:
         """Run inference on a single transaction represented as a dictionary."""
         single_df = pd.DataFrame([transaction_data])
         batch = self.predict_batch(single_df, include_probabilities=include_probabilities)
@@ -150,7 +162,9 @@ class InferencePipeline:
     # ------------------------------------------------------------------
     # Diagnostics
 
-    def get_feature_importance(self, sample_data: Optional[pd.DataFrame] = None) -> Optional[Dict[str, float]]:
+    def get_feature_importance(
+        self, sample_data: Optional[pd.DataFrame] = None
+    ) -> Optional[Dict[str, float]]:
         """Return feature importance if the underlying model supports it."""
         if self.model is None:
             return None
@@ -229,12 +243,16 @@ class InferencePipeline:
 class AutomatedRetrainingSystem:
     """Simplified placeholder for drift-triggered retraining logic."""
 
-    def __init__(self, training_entrypoint: str, mlflow_experiment_name: str = "fraud_detection") -> None:
+    def __init__(
+        self, training_entrypoint: str, mlflow_experiment_name: str = "fraud_detection"
+    ) -> None:
         self.training_entrypoint = training_entrypoint
         self.mlflow_experiment_name = mlflow_experiment_name
         self.retraining_history: List[Dict[str, Any]] = []
 
-    def trigger_retraining(self, trigger_reason: str, training_data: Optional[pd.DataFrame] = None) -> Dict[str, Any]:
+    def trigger_retraining(
+        self, trigger_reason: str, training_data: Optional[pd.DataFrame] = None
+    ) -> Dict[str, Any]:
         logger.info("Starting automated retraining: %s", trigger_reason)
         record: Dict[str, Any] = {
             "trigger_timestamp": datetime.utcnow().isoformat(),
@@ -249,7 +267,9 @@ class AutomatedRetrainingSystem:
             record["status"] = "completed"
             record["completion_timestamp"] = datetime.utcnow().isoformat()
             record["new_model_version"] = f"v{len(self.retraining_history) + 1}"
-            record["training_samples"] = len(training_data) if training_data is not None else "unknown"
+            record["training_samples"] = (
+                len(training_data) if training_data is not None else "unknown"
+            )
             logger.info("Automated retraining completed")
         except Exception as exc:  # noqa: BLE001
             record["status"] = "failed"
@@ -285,41 +305,75 @@ def create_sample_transaction() -> Dict[str, Any]:
     from datetime import datetime, timedelta
     import numpy as np
     import random
-    merchant_categories = ['grocery', 'gas_station', 'restaurant', 'retail', 'online', 'entertainment']
-    transaction_types = ['purchase', 'withdrawal', 'transfer', 'payment']
-    locations = ['seattle_wa', 'portland_or', 'san_francisco_ca', 'los_angeles_ca', 'denver_co']
-    device_types = ['mobile', 'desktop', 'atm', 'pos']
+
+    merchant_categories = [
+        "grocery",
+        "gas_station",
+        "restaurant",
+        "retail",
+        "online",
+        "entertainment",
+    ]
+    transaction_types = ["purchase", "withdrawal", "transfer", "payment"]
+    locations = ["seattle_wa", "portland_or", "san_francisco_ca", "los_angeles_ca", "denver_co"]
+    device_types = ["mobile", "desktop", "atm", "pos"]
     rng = np.random.default_rng(seed=random.randint(0, 10000))
-    hour_probs = np.array([0.02, 0.01, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06,
-                           0.07, 0.08, 0.08, 0.07, 0.07, 0.08, 0.09, 0.08,
-                           0.07, 0.06, 0.05, 0.04, 0.04, 0.03, 0.02, 0.02], dtype=float)
+    hour_probs = np.array(
+        [
+            0.02,
+            0.01,
+            0.01,
+            0.02,
+            0.03,
+            0.04,
+            0.05,
+            0.06,
+            0.07,
+            0.08,
+            0.08,
+            0.07,
+            0.07,
+            0.08,
+            0.09,
+            0.08,
+            0.07,
+            0.06,
+            0.05,
+            0.04,
+            0.04,
+            0.03,
+            0.02,
+            0.02,
+        ],
+        dtype=float,
+    )
     hour_probs /= hour_probs.sum()
     hour = rng.choice(np.arange(24), p=hour_probs)
     is_suspicious = rng.random() < 0.05
     if is_suspicious:
         amount = rng.lognormal(7, 1.2)
         hour = rng.choice([0, 1, 2, 3, 22, 23])
-        merchant_cat = rng.choice(['online', 'entertainment'])
-        device_type = rng.choice(['atm', 'desktop'])
+        merchant_cat = rng.choice(["online", "entertainment"])
+        device_type = rng.choice(["atm", "desktop"])
     else:
         amount = rng.lognormal(4, 0.9)
         merchant_cat = rng.choice(merchant_categories)
         device_type = rng.choice(device_types)
     return {
-        'transaction_id': f'txn_{rng.integers(1, 1000000):06d}',
-        'user_id': f'user_{rng.integers(1, 5000):05d}',
-        'device_id': f'device_{rng.integers(1, 2000):05d}',
-        'amount': float(np.round(amount, 2)),
-        'merchant_category': merchant_cat,
-        'transaction_type': rng.choice(transaction_types),
-        'location': rng.choice(locations),
-        'device_type': device_type,
-        'hour_of_day': int(hour),
-        'day_of_week': int(rng.integers(0, 7)),
-        'user_transaction_frequency': float(rng.uniform(1, 20)),
-        'user_avg_amount': float(rng.uniform(50, 300)),
-        'user_transaction_count': int(rng.integers(1, 100)),
-        'timestamp': datetime.now() - timedelta(hours=int(rng.integers(0, 720)))
+        "transaction_id": f"txn_{rng.integers(1, 1000000):06d}",
+        "user_id": f"user_{rng.integers(1, 5000):05d}",
+        "device_id": f"device_{rng.integers(1, 2000):05d}",
+        "amount": float(np.round(amount, 2)),
+        "merchant_category": merchant_cat,
+        "transaction_type": rng.choice(transaction_types),
+        "location": rng.choice(locations),
+        "device_type": device_type,
+        "hour_of_day": int(hour),
+        "day_of_week": int(rng.integers(0, 7)),
+        "user_transaction_frequency": float(rng.uniform(1, 20)),
+        "user_avg_amount": float(rng.uniform(50, 300)),
+        "user_transaction_count": int(rng.integers(1, 100)),
+        "timestamp": datetime.now() - timedelta(hours=int(rng.integers(0, 720))),
     }
 
 
@@ -355,4 +409,3 @@ __all__ = [
     "create_sample_transaction",
     "load_production_inference_pipeline",
 ]
-

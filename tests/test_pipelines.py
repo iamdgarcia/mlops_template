@@ -53,7 +53,7 @@ def test_run_data_preparation_returns_expected_splits(tmp_path):
 
 
 def test_inference_pipeline_predicts_single_row(tmp_path):
-    pytest.importorskip('mlflow', reason='mlflow is required for inference pipeline tests')
+    pytest.importorskip("mlflow", reason="mlflow is required for inference pipeline tests")
     config = _small_config(tmp_path)
     outputs = run_data_preparation(config, regenerate_data=True, persist=False)
 

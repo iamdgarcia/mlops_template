@@ -37,7 +37,9 @@ class TransactionRequest(BaseModel):
     timestamp: Optional[str] = Field(None, description="ISO timestamp of the transaction")
     device_id: Optional[str] = Field(None, description="Device identifier")
 
-    user_transaction_frequency: Optional[float] = Field(None, ge=0, description="User transaction frequency")
+    user_transaction_frequency: Optional[float] = Field(
+        None, ge=0, description="User transaction frequency"
+    )
     user_avg_amount: Optional[float] = Field(None, ge=0, description="User average amount")
     user_transaction_count: Optional[int] = Field(None, ge=0, description="User transaction count")
 
@@ -100,7 +102,9 @@ def build_transaction_dataframe(request: TransactionRequest) -> pd.DataFrame:
     payload.setdefault("device_id", payload.get("device_id") or f"device_{payload['user_id']}")
 
     # Provide defaults for optional context
-    payload.setdefault("user_transaction_frequency", payload.get("user_transaction_frequency") or 0.0)
+    payload.setdefault(
+        "user_transaction_frequency", payload.get("user_transaction_frequency") or 0.0
+    )
     payload.setdefault("user_avg_amount", payload.get("user_avg_amount") or payload["amount"])
     payload.setdefault("user_transaction_count", payload.get("user_transaction_count") or 1)
 
@@ -238,7 +242,9 @@ async def sample_transaction() -> Dict[str, Any]:
 
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict_fraud(transaction: TransactionRequest, background_tasks: BackgroundTasks) -> PredictionResponse:
+async def predict_fraud(
+    transaction: TransactionRequest, background_tasks: BackgroundTasks
+) -> PredictionResponse:
     global prediction_count
 
     if inference_pipeline is None or inference_pipeline.model is None:
@@ -320,4 +326,3 @@ if __name__ == "__main__":
         reload=api_cfg.get("reload", False),
         workers=api_cfg.get("workers", 1),
     )
-

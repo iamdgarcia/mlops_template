@@ -136,4 +136,3 @@ def _persist_outputs(
         "created_at": pd.Timestamp.utcnow().isoformat(),
     }
     feature_metadata_path.write_text(json.dumps(feature_metadata, indent=2))
-

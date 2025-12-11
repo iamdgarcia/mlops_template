@@ -14,9 +14,8 @@ def test_feature_engineering_produces_numeric_columns():
 
     # All non-target columns should be numeric/bool after encoding step
     non_numeric = [
-        col for col, dtype in engineered.dtypes.items()
-        if col != 'is_fraud' and dtype.kind not in ('b', 'i', 'u', 'f')
+        col
+        for col, dtype in engineered.dtypes.items()
+        if col != "is_fraud" and dtype.kind not in ("b", "i", "u", "f")
     ]
     assert not non_numeric, f"Found non-numeric engineered columns: {non_numeric}"
-
-

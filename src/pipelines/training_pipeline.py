@@ -46,14 +46,18 @@ def run_training_pipeline(
     best_model = None
 
     if trainer.model_metrics:
-        best_model_name = max(trainer.model_metrics.keys(), key=lambda key: _score_model(trainer.model_metrics[key]))
+        best_model_name = max(
+            trainer.model_metrics.keys(), key=lambda key: _score_model(trainer.model_metrics[key])
+        )
         best_model_metrics = trainer.model_metrics.get(best_model_name)
         best_model = trainer.best_models.get(best_model_name)
 
     test_metrics: Optional[Dict[str, Any]] = None
     if best_model is not None and test_split is not None:
         X_test, y_test = test_split
-        test_metrics = trainer.evaluate_on_test(best_model, X_test, y_test, model_name=best_model_name or "model")
+        test_metrics = trainer.evaluate_on_test(
+            best_model, X_test, y_test, model_name=best_model_name or "model"
+        )
 
     model_artifact_path: Optional[Path] = None
     if save_model and best_model is not None and best_model_name is not None:
@@ -83,4 +87,3 @@ def run_training_pipeline(
         "summary_path": summary_path,
         "feature_names": data_outputs["feature_names"],
     }
-

@@ -43,20 +43,24 @@ app = FastAPI(title="Minimal Fraud Detection API", version="0.1.0")
 
 def _load_pipeline() -> InferencePipeline:
     """Load inference pipeline with proper error handling.
-    
+
     Returns:
         Configured InferencePipeline instance
-        
+
     Raises:
         FileNotFoundError: If model file doesn't exist
         Exception: If pipeline initialization fails
     """
     try:
         cfg = ConfigManager().get_serving_config()
-        model_path = cfg.get("model", {}).get("local_model_path", "models/random_forest_final_model.joblib")
+        model_path = cfg.get("model", {}).get(
+            "local_model_path", "models/random_forest_final_model.joblib"
+        )
         return InferencePipeline(model_path=model_path)
     except FileNotFoundError as e:
-        raise FileNotFoundError(f"Model file not found. Please ensure model is trained and saved. Error: {e}")
+        raise FileNotFoundError(
+            f"Model file not found. Please ensure model is trained and saved. Error: {e}"
+        )
     except Exception as e:
         raise RuntimeError(f"Failed to initialize inference pipeline: {e}")
 
@@ -94,4 +98,3 @@ async def predict(txn: Transaction) -> Dict[str, Any]:
 @app.get("/sample")
 async def sample() -> Dict[str, Any]:
     return create_sample_transaction()
-
