@@ -31,6 +31,30 @@ class FeatureEngineer:
         self.lookback_days = self.features_config.get("lookback_days", 30)
         self.min_user_transactions = self.features_config.get("min_user_transactions", 5)
     
+    def _get_user_frequent_value(self, df: pd.DataFrame, group_col: str, value_col: str) -> Dict[str, Any]:
+        """
+        Helper function to get the most frequent value per group.
+        
+        This extracts duplicate logic for finding frequent locations, devices, and merchants.
+        
+        Args:
+            df: Input dataframe
+            group_col: Column to group by (e.g., 'user_id')
+            value_col: Column to find mode for (e.g., 'location', 'device_id')
+            
+        Returns:
+            Dictionary mapping group values to their most frequent value
+            
+        Example:
+            >>> user_locations = _get_user_frequent_value(df, 'user_id', 'location')
+            >>> df['frequent_location'] = df['user_id'].map(user_locations)
+        """
+        return (
+            df.groupby(group_col)[value_col]
+            .apply(lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0])
+            .to_dict()
+        )
+    
     def create_temporal_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Create time-based features from timestamp column.
@@ -99,7 +123,8 @@ class FeatureEngineer:
             # Amount categories (based on quartiles)
             try:
                 df_amount['amount_category'] = pd.qcut(df_amount['amount'], 4, labels=['low', 'medium', 'high', 'very_high'], duplicates='drop')
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Could not create amount categories (likely due to low variance or duplicates): {e}. Setting all to 'unknown'.")
                 df_amount['amount_category'] = 'unknown'
             
             # Round amount (some fraud patterns involve round numbers)
@@ -248,11 +273,7 @@ class FeatureEngineer:
         
         # Most frequent location per user
         if "user_id" in df_loc.columns:
-            user_frequent_location = (
-                df_loc.groupby("user_id")["location"]
-                .apply(lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0])
-                .to_dict()
-            )
+            user_frequent_location = self._get_user_frequent_value(df_loc, "user_id", "location")
             
             df_loc["user_frequent_location"] = df_loc["user_id"].map(user_frequent_location)
             df_loc["is_usual_location"] = (df_loc["location"] == df_loc["user_frequent_location"]).astype(int)
@@ -283,11 +304,7 @@ class FeatureEngineer:
         # Device consistency features
         if "user_id" in df_device.columns and "device_id" in df_device.columns:
             # Most frequent device per user
-            user_frequent_device = (
-                df_device.groupby("user_id")["device_id"]
-                .apply(lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0])
-                .to_dict()
-            )
+            user_frequent_device = self._get_user_frequent_value(df_device, "user_id", "device_id")
             
             df_device["user_frequent_device"] = df_device["user_id"].map(user_frequent_device)
             df_device["is_usual_device"] = (df_device["device_id"] == df_device["user_frequent_device"]).astype(int)
@@ -320,11 +337,7 @@ class FeatureEngineer:
         # User's merchant preferences
         if "user_id" in df_merchant.columns:
             # Most frequent merchant category per user
-            user_frequent_merchant = (
-                df_merchant.groupby("user_id")["merchant_category"]
-                .apply(lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0])
-                .to_dict()
-            )
+            user_frequent_merchant = self._get_user_frequent_value(df_merchant, "user_id", "merchant_category")
             
             df_merchant["user_frequent_merchant"] = df_merchant["user_id"].map(user_frequent_merchant)
             df_merchant["is_usual_merchant_category"] = (

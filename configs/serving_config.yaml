@@ -17,7 +17,7 @@ model:
   model_version: "latest"  # Can be "latest", "production", or specific version number
   model_stage: "production"  # MLflow model stage
   use_mlflow: true
-  local_model_path: "models/xgboost_final_model.joblib"
+  local_model_path: "models/random_forest_final_model.joblib"  # Updated to actual model file
   
   # Model loading
   cache_model: true
@@ -36,19 +36,20 @@ prediction:
   max_requests_per_minute: 1000
   
 # Monitoring Configuration
+# NOTE: Basic logging is implemented. Advanced drift detection and metrics are planned features.
 monitoring:
-  enable_drift_detection: true
-  drift_threshold: 0.05
-  drift_window_size: 1000  # Number of predictions for drift calculation
+  enable_drift_detection: true  # PLANNED: Not yet implemented in API
+  drift_threshold: 0.05  # PLANNED: Not yet implemented
+  drift_window_size: 1000  # Number of predictions for drift calculation (PLANNED)
   
   # Performance monitoring
-  log_predictions: true
-  log_performance_metrics: true
-  metrics_calculation_interval: 3600  # seconds
+  log_predictions: true  # IMPLEMENTED: Predictions logged to memory and file
+  log_performance_metrics: true  # IMPLEMENTED: Basic metrics available at /metrics endpoint
+  metrics_calculation_interval: 3600  # seconds (PLANNED: automated metrics reporting)
   
   # Data storage for monitoring
-  prediction_log_path: "data/logs/predictions.csv"
-  metrics_log_path: "data/logs/metrics.csv"
+  prediction_log_path: "data/logs/predictions.csv"  # IMPLEMENTED
+  metrics_log_path: "data/logs/metrics.csv"  # PLANNED
 
 # Health Check Configuration
 health_check:
@@ -75,24 +76,27 @@ logging:
   log_responses: false  # Don't log responses (may contain sensitive data)
 
 # Security Configuration
+# WARNING: These features are NOT IMPLEMENTED. This is a learning project, not production-ready.
+# DO NOT deploy this API to the internet without implementing proper security measures.
 security:
   # API Key authentication (optional)
-  require_api_key: false
-  api_key_header: "X-API-Key"
+  require_api_key: false  # PLANNED: Not yet implemented
+  api_key_header: "X-API-Key"  # PLANNED: Not yet implemented
   
   # Input sanitization
-  sanitize_inputs: true
-  max_string_length: 100
+  sanitize_inputs: true  # PLANNED: Basic validation exists via Pydantic, no sanitization
+  max_string_length: 100  # PLANNED: Not enforced
 
 # Performance Configuration
+# NOTE: Basic async handling is implemented via FastAPI. Advanced features are planned.
 performance:
   # Async settings
-  max_concurrent_requests: 100
+  max_concurrent_requests: 100  # PLANNED: Not enforced
   
   # Timeouts
-  request_timeout: 30
-  model_prediction_timeout: 10
+  request_timeout: 30  # PLANNED: Not enforced
+  model_prediction_timeout: 10  # PLANNED: Not enforced
   
   # Caching
-  enable_response_caching: false
-  cache_ttl: 300  # seconds
+  enable_response_caching: false  # PLANNED: Not implemented
+  cache_ttl: 300  # seconds (PLANNED)

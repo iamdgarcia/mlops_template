@@ -131,19 +131,32 @@ uvicorn scripts.minimal_serve:app --reload --port 8000
 ```
 
 ### API Endpoints
-- `GET /health` - Health check
-- `POST /predict` - Single prediction
-- `POST /predict/batch` - Batch predictions
-- `GET /model/info` - Model metadata
+- `GET /` - API information and documentation link
+- `GET /health` - Health check with model status
+- `POST /predict` - Single transaction fraud prediction
+- `GET /sample-transaction` - Get a sample transaction for testing
+- `GET /metrics` - API performance metrics
+- `POST /save-logs` - Manually save prediction logs
+
+**Note**: The `/model/info` endpoint mentioned in earlier documentation has been replaced with `/metrics` which includes model version information.
 
 ### Example API Usage
 ```python
 import requests
 
+# Get a sample transaction to test with
+sample = requests.get('http://localhost:8000/sample-transaction').json()
+print("Sample transaction:", sample)
+
 # Single prediction
-response = requests.post('http://localhost:8000/predict', 
-                        json={'amount': 150.0, 'hour_of_day': 14, ...})
-print(response.json())
+response = requests.post('http://localhost:8000/predict', json=sample)
+result = response.json()
+print(f"Fraud probability: {result['fraud_probability']}")
+print(f"Risk level: {result['risk_level']}")
+
+# Check API health
+health = requests.get('http://localhost:8000/health').json()
+print(f"Model loaded: {health['model_loaded']}")
 ```
 
 ## Docker Deployment
@@ -234,25 +247,79 @@ This project is designed to support video tutorials for key concepts:
    ```
 
 2. **MLflow Issues**
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Model File Not Found**
    ```bash
-   # Clear MLflow cache
-   rm -rf mlruns/
-   mlflow ui --port 5000
+   # Error: Model file not found at models/random_forest_final_model.joblib
+   # Solution: Run the training notebook first to generate the model
+   jupyter notebook notebooks/03_model_training.ipynb
    ```
 
-3. **Data Not Found**
+2. **MLflow Port Conflict**
    ```bash
-   # Run notebooks in sequence
-   # Each notebook generates data for the next
+   # Error: Address already in use
+   # Solution: Either kill the existing process or use a different port
+   lsof -i :5000  # Find the process using port 5000
+   kill -9 <PID>  # Kill the process
+   # Or use a different port:
+   mlflow ui --port 5001
    ```
 
-4. **API Connection Issues**
+3. **Permission Errors on data/ or models/ directories**
+   ```bash
+   # Error: Permission denied when writing to data/ or models/
+   # Solution: Ensure directories exist and have proper permissions
+   mkdir -p data/logs data/inference_results data/drift_alerts models logs
+   chmod -R u+w data models logs
+   ```
+
+4. **Docker HEALTHCHECK Fails**
+   ```bash
+   # Error: Container marked as unhealthy
+   # Cause: curl not installed in container (fixed in latest Dockerfile)
+   # Solution: Rebuild the Docker image
+   docker-compose down
+   docker-compose build --no-cache
+   docker-compose up
+   ```
+
+5. **Missing Dependencies in Notebooks**
+   ```bash
+   # Error: ModuleNotFoundError
+   # Solution: Ensure virtual environment is activated and packages installed
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   # For Jupyter, ensure kernel uses correct environment
+   python -m ipykernel install --user --name=mlops_env
+   ```
+
+6. **Data Not Found**
+   ```bash
+   # Error: File not found: data/transactions_raw.csv
+   # Solution: Run notebooks in sequence - each generates data for the next
+   # Start with 01_data_preparation.ipynb
+   ```
+
+7. **API Connection Issues**
   ```bash
   # Check if port is available
   lsof -i :8000
-  # Use different port if needed
+  # Kill process if needed
+  kill -9 <PID>
+  # Or use different port
   uvicorn src.serving.main:app --port 8001
   ```
+
+8. **MLflow Experiment Tracking Issues**
+   ```bash
+   # Error: Failed to create experiment
+   # Solution: Clear MLflow cache and restart
+   rm -rf mlruns/
+   # MLflow will recreate experiments when you run training notebook
+   ```
 
 ### Performance Optimization
 - Reduce dataset size in config files for faster execution
