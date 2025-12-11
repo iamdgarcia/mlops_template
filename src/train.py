@@ -488,7 +488,13 @@ class ModelTrainer:
 
         return metrics
 
-    def save_model(self, model: Any, model_path: str, model_name: Optional[str] = None, output_dir: Optional[str] = None) -> None:
+    def save_model(
+        self,
+        model: Any,
+        model_path: str,
+        model_name: Optional[str] = None,
+        output_dir: Optional[str] = None,
+    ) -> None:
         """
         Save model to disk.
 

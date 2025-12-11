@@ -268,8 +268,12 @@ class TestFeatureParity:
         loaded_features = _load_feature_store(feature_store_path)
 
         # Should load the same features
-        assert len(loaded_features) == len(feature_names), f"Expected {len(feature_names)} features, got {len(loaded_features)}"
-        assert set(loaded_features) == set(feature_names), f"Feature mismatch: expected {set(feature_names)}, got {set(loaded_features)}"
+        assert len(loaded_features) == len(
+            feature_names
+        ), f"Expected {len(feature_names)} features, got {len(loaded_features)}"
+        assert set(loaded_features) == set(
+            feature_names
+        ), f"Feature mismatch: expected {set(feature_names)}, got {set(loaded_features)}"
 
     def test_serving_api_sample_transaction(self):
         """Test that create_sample_transaction works with feature engineering."""
