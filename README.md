@@ -105,27 +105,26 @@ uvicorn scripts.minimal_serve:app --reload --port 8000
 
 ```
 mlops_template/
-├── notebooks/              # Educational Jupyter notebooks
+├── notebooks/              # Educational Jupyter notebooks (execute in order 01-05)
 │   ├── 01_data_preparation.ipynb
 │   ├── 02_feature_engineering.ipynb
 │   ├── 03_model_training.ipynb
 │   ├── 04_model_inference.ipynb
-│   ├── 05_drift_detection.ipynb
-│   └── extras/             # Advanced topics (optional)
-│       ├── 06_end_to_end_pipeline.ipynb
-│       ├── 07_model_registry.ipynb
-│       ├── 08_model_serving.ipynb
-│       ├── 09_cicd_pipeline.ipynb
-│       └── 10_advanced_monitoring.ipynb
+│   └── 05_drift_detection.ipynb
 ├── src/                     # Reusable Python modules
 │   ├── data_generation/     # Data generation utilities
 │   ├── feature_engineering/ # Feature creation functions
 │   ├── models/             # Model training and evaluation
 │   ├── inference/          # Prediction pipeline
-│   └── serving/            # API endpoints
-├── configs/                # Configuration files
+│   ├── serving/            # FastAPI application
+│   └── pipelines/          # High-level pipeline orchestration
+├── scripts/                # Automation scripts
+│   ├── run_full_pipeline.py  # End-to-end pipeline execution
+│   └── minimal_serve.py      # Minimal API demo
+├── configs/                # YAML configuration files
 ├── data/                   # Generated datasets (created during execution)
 ├── models/                 # Saved model artifacts
+├── tests/                  # Unit and integration tests
 └── requirements.txt        # Python dependencies
 ```
 

@@ -181,10 +181,12 @@ Sequential Jupyter notebooks that build upon each other. Each notebook is self-c
 ### `/src/` - Production Code
 Modularized, reusable Python code extracted from notebooks:
 - `data_generation/` - Synthetic data creation
-- `feature_engineering/` - Feature creation functions
-- `models/` - Training and evaluation utilities
-- `inference/` - Prediction pipeline
+- `features.py` - **Single source of truth for feature engineering** (used by training, inference, and serving)
+- `inference.py` - Prediction pipeline that uses `FeatureEngineer`
 - `serving/` - FastAPI application
+- `pipelines/` - High-level orchestration for data preparation and training
+
+**Key Design Pattern**: All feature engineering flows through `src/features.py`'s `FeatureEngineer` class to ensure training/serving parity.
 
 ### `/configs/` - Configuration Management
 YAML configuration files for different environments and components.
@@ -216,6 +218,60 @@ Trained models, scalers, and metadata saved for production use.
 3. **Evaluation Metrics**: Precision, recall, F1 for fraud detection
 4. **Temporal Patterns**: Time-based fraud analysis
 5. **Behavioral Analysis**: User pattern recognition
+
+## Feature Engineering: Single Source of Truth
+
+### Architecture Pattern
+This project implements a critical MLOps best practice: **feature engineering parity** between training and serving.
+
+**How it works**:
+1. **Canonical Implementation**: All feature engineering logic lives in `src/features.py` in the `FeatureEngineer` class
+2. **Training Path**: Notebooks and training scripts import and use `FeatureEngineer.create_all_features()`
+3. **Inference Path**: `InferencePipeline` in `src/inference.py` uses `FeatureEngineer` for preprocessing
+4. **Serving Path**: FastAPI application delegates to `InferencePipeline`, which uses `FeatureEngineer`
+
+### Why This Matters
+**Training/Serving Skew** is a common MLOps failure mode where features computed differently in training vs. production cause model performance degradation. By using the same code path, we eliminate this risk.
+
+### Example Usage
+
+**In Training** (notebooks/03_model_training.ipynb):
+```python
+from src.features import FeatureEngineer
+
+engineer = FeatureEngineer(config)
+features_df = engineer.create_all_features(raw_data)
+# Use features_df for training...
+```
+
+**In Inference** (src/inference.py):
+```python
+from src.features import FeatureEngineer
+
+class InferencePipeline:
+    def __init__(self):
+        self.feature_engineer = FeatureEngineer()
+    
+    def preprocess_data(self, raw_data):
+        return self.feature_engineer.create_all_features(raw_data)
+```
+
+**In Serving** (src/serving/main.py):
+```python
+# FastAPI endpoint
+@app.post("/predict")
+async def predict_fraud(transaction: TransactionRequest):
+    # InferencePipeline handles feature engineering internally
+    predictions = inference_pipeline.predict_batch(transaction_df)
+    return predictions
+```
+
+### Validation
+The test suite `tests/test_feature_parity.py` validates that:
+- Feature engineering produces consistent results across all contexts
+- No features are computed differently in training vs. serving
+- Edge cases are handled correctly
+- Feature schemas remain compatible
 
 ## Video Tutorial Integration
 
