@@ -252,45 +252,37 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     environment:
       name: staging
-      url: https://staging-fraud-detection.example.com
+      url: https://fraud-detection-api-staging.ondigitalocean.app
     
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
         name: deployment-package
+        path: .
     
-    - name: Verify deployment artifacts
-      run: |
-        python scripts/validate_deployment.py
+    - name: Deploy to DigitalOcean App Platform
+      id: deploy
+      uses: digitalocean/app_action/deploy@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     
-    - name: Deploy to staging environment
+    - name: Get deployment URL
       run: |
-        echo "🚀 Deploying to staging environment"
-        echo "✓ Model artifacts verified"
-        echo "✓ Configuration validated"
-        # Add your actual deployment commands here
-        # Examples for Google Cloud Run:
-        # gcloud run deploy fraud-detection-staging \
-        #   --source . \
-        #   --region us-central1 \
-        #   --platform managed \
-        #   --allow-unauthenticated \
-        #   --set-env-vars ENVIRONMENT=staging
+        echo "🚀 App deployed successfully!"
+        echo "📍 Live URL: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
+        echo "🆔 App ID: ${{ fromJson(steps.deploy.outputs.app).id }}"
+    
+    - name: Wait for deployment to be ready
+      run: sleep 30
     
     - name: Run health check
       run: |
         echo "🏥 Running health checks on staging deployment"
-        # Add health check commands
-        # curl -f https://staging-fraud-detection.example.com/health || exit 1
-        # curl -f https://staging-fraud-detection.example.com/model/info || exit 1
+        curl -f ${{ fromJson(steps.deploy.outputs.app).live_url }}/health || exit 1
+        echo "✓ Health check passed"
 
   deploy-dev:
     name: Deploy to Development
@@ -299,45 +291,37 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     environment:
       name: development
-      url: https://dev-fraud-detection.example.com
+      url: https://fraud-detection-api-dev.ondigitalocean.app
     
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
         name: deployment-package
+        path: .
     
-    - name: Verify deployment artifacts
-      run: |
-        python scripts/validate_deployment.py
+    - name: Deploy to DigitalOcean App Platform
+      id: deploy
+      uses: digitalocean/app_action/deploy@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     
-    - name: Deploy to development environment
+    - name: Get deployment URL
       run: |
-        echo "🚀 Deploying to development environment"
-        echo "✓ Model artifacts verified"
-        echo "✓ Configuration validated"
-        # Add your actual deployment commands here
-        # Examples for Google Cloud Run:
-        # gcloud run deploy fraud-detection-dev \
-        #   --source . \
-        #   --region us-central1 \
-        #   --platform managed \
-        #   --allow-unauthenticated \
-        #   --set-env-vars ENVIRONMENT=development
+        echo "🚀 App deployed successfully!"
+        echo "📍 Live URL: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
+        echo "🆔 App ID: ${{ fromJson(steps.deploy.outputs.app).id }}"
+    
+    - name: Wait for deployment to be ready
+      run: sleep 30
     
     - name: Run health check
       run: |
         echo "🏥 Running health checks on development deployment"
-        # Add health check commands
-        # curl -f https://dev-fraud-detection.example.com/health || exit 1
-        # curl -f https://dev-fraud-detection.example.com/model/info || exit 1
+        curl -f ${{ fromJson(steps.deploy.outputs.app).live_url }}/health || exit 1
+        echo "✓ Health check passed"
 
   deploy-production:
     name: Deploy to Production
@@ -346,56 +330,43 @@ jobs:
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment:
       name: production
-      url: https://fraud-detection.example.com
+      url: https://fraud-detection-api.ondigitalocean.app
     
     steps:
     - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
     
     - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
         name: deployment-package
+        path: .
     
-    - name: Verify deployment artifacts
-      run: |
-        python scripts/validate_deployment.py
+    - name: Deploy to DigitalOcean App Platform
+      id: deploy
+      uses: digitalocean/app_action/deploy@v2
+      with:
+        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
     
-    - name: Deploy to production environment
+    - name: Get deployment URL
       run: |
-        echo "🚀 Deploying to production environment"
-        echo "✓ Model artifacts verified"
-        echo "✓ Configuration validated"
-        # Add your actual production deployment commands here
-        # Examples for Google Cloud Run:
-        # gcloud run deploy fraud-detection-prod \
-        #   --source . \
-        #   --region us-central1 \
-        #   --platform managed \
-        #   --allow-unauthenticated \
-        #   --set-env-vars ENVIRONMENT=production \
-        #   --min-instances 1 \
-        #   --max-instances 10
+        echo "🚀 App deployed successfully!"
+        echo "📍 Live URL: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
+        echo "🆔 App ID: ${{ fromJson(steps.deploy.outputs.app).id }}"
+    
+    - name: Wait for deployment to be ready
+      run: sleep 30
     
     - name: Run production health check
       run: |
         echo "🏥 Running health checks on production deployment"
-        # Add health check commands
-        # curl -f https://fraud-detection.example.com/health || exit 1
-        # curl -f https://fraud-detection.example.com/model/info || exit 1
+        curl -f ${{ fromJson(steps.deploy.outputs.app).live_url }}/health || exit 1
+        echo "✓ Health check passed"
     
     - name: Notify deployment
       run: |
         echo "📢 Production deployment complete"
-        # Add notification logic (Slack, email, etc.)
-        # Example: Send to Slack webhook
-        # curl -X POST -H 'Content-type: application/json' \
-        #   --data '{"text":"Fraud Detection Model deployed to production"}' \
-        #   $SLACK_WEBHOOK_URL
+        echo "🌐 API available at: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
+        echo "📚 API docs at: ${{ fromJson(steps.deploy.outputs.app).live_url }}/docs"
 
   drift-detection:
     name: Drift Detection Monitoring

@@ -165,6 +165,36 @@ This repository is designed for:
 - Teams implementing their first end-to-end ML pipeline
 - Anyone interested in practical MLOps implementation
 
+## Deployment
+
+### DigitalOcean App Platform (Recommended for Course)
+
+This project includes automated deployment to DigitalOcean App Platform using GitHub Actions.
+
+> 💰 **Get $200 Free Credit!** Sign up using [this link](https://m.do.co/c/eddc62174250) to receive $200 in free credits for 60 days - perfect for running this course project at no cost!
+
+**Quick Setup:**
+1. Create a DigitalOcean account at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250) (includes $200 free credit)
+2. Generate an API token (API → Tokens/Keys)
+3. Add token to GitHub Secrets as `DIGITALOCEAN_ACCESS_TOKEN`
+4. Push to `master` branch to trigger deployment
+
+**Detailed Instructions:** See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+
+**Cost:** ~$5/month (Basic tier with 512MB RAM)
+
+The deployment automatically:
+- ✅ Builds Docker container with trained model
+- ✅ Deploys FastAPI application
+- ✅ Configures health checks
+- ✅ Provides public HTTPS endpoint
+- ✅ Runs automated smoke tests
+
+**Access your deployed API:**
+- Health check: `https://your-app.ondigitalocean.app/health`
+- API docs: `https://your-app.ondigitalocean.app/docs`
+- Predictions: `POST https://your-app.ondigitalocean.app/predict`
+
 ## Testing
 
 Run the test suite to validate the implementation:

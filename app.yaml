@@ -1,0 +1,43 @@
+name: fraud-detection-api
+region: nyc
+
+services:
+- name: api
+  github:
+    repo: iamdgarcia/mlops_template
+    branch: master
+    deploy_on_push: true
+  
+  dockerfile_path: Dockerfile
+  
+  http_port: 8000
+  
+  # Basic tier - $5/month (512MB RAM, 0.5 vCPU)
+  # Upgrade to apps-s-1vcpu-1gb ($12/mo) if needed
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_count: 1
+  
+  health_check:
+    http_path: /health
+    initial_delay_seconds: 60
+    period_seconds: 30
+    timeout_seconds: 10
+    success_threshold: 1
+    failure_threshold: 3
+  
+  routes:
+  - path: /
+  
+  envs:
+  - key: PYTHONPATH
+    value: /app
+    scope: RUN_TIME
+    type: general
+  - key: ENVIRONMENT
+    value: production
+    scope: RUN_TIME
+    type: general
+  - key: PYTHONUNBUFFERED
+    value: "1"
+    scope: RUN_TIME
+    type: general
