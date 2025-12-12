@@ -43,25 +43,29 @@ class TransactionRequest(BaseModel):
     user_avg_amount: Optional[float] = Field(None, ge=0, description="User average amount")
     user_transaction_count: Optional[int] = Field(None, ge=0, description="User transaction count")
 
-    @validator("merchant_category")
+    @field_validator("merchant_category")
+    @classmethod
     def merchant_category_not_empty(cls, value: str) -> str:
         if not value:
             raise ValueError("merchant_category must be provided")
         return value
 
-    @validator("transaction_type")
+    @field_validator("transaction_type")
+    @classmethod
     def transaction_type_not_empty(cls, value: str) -> str:
         if not value:
             raise ValueError("transaction_type must be provided")
         return value
 
-    @validator("device_type")
+    @field_validator("device_type")
+    @classmethod
     def device_type_not_empty(cls, value: str) -> str:
         if not value:
             raise ValueError("device_type must be provided")
         return value
 
-    @validator("timestamp")
+    @field_validator("timestamp")
+    @classmethod
     def validate_timestamp(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
             return value
