@@ -141,8 +141,6 @@ Thumbs.db
 *.log
 logs/
 
-# Agent work directory
-.agent_work/
 
 # Data directory - allow essential deployment files
 data/*

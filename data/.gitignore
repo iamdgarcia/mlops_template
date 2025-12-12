@@ -33,6 +33,10 @@
 !README.md
 !.gitkeep
 
+# Keep essential deployment files
+!selected_features.json
+!processing_config.json
+
 # Subdirectories - apply same rules
 raw/*.csv
 raw/*.parquet

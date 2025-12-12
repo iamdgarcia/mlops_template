@@ -1,0 +1,8 @@
+{
+  "data_generation": {
+    "n_transactions": 20000,
+    "fraud_rate": 0.02,
+    "random_seed": 42
+  },
+  "processing_timestamp": "2025-10-01T15:33:16.000482"
+}
