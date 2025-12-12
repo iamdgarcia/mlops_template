@@ -21,7 +21,7 @@ pre-commit~=3.3.0      # Git hook framework for code quality checks
 ## Jupyter Notebook Support
 jupyter~=1.0.0         # Jupyter notebook environment
 ipykernel~=6.25.0      # IPython kernel for Jupyter
-nbconvert~=7.7.0       # Convert notebooks to other formats
+nbconvert~=7.16.6       # Convert notebooks to other formats
 nbformat~=5.9.0        # Notebook format handling
 
 ## Visualization (for notebooks and analysis)
