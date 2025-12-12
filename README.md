@@ -169,26 +169,47 @@ This repository is designed for:
 
 ### DigitalOcean App Platform (Recommended for Course)
 
-This project includes automated deployment to DigitalOcean App Platform using GitHub Actions.
+This project includes automated deployment to DigitalOcean App Platform using GitHub Actions with **explicit deployment triggers**.
 
 > 💰 **Get $200 Free Credit!** Sign up using [this link](https://m.do.co/c/eddc62174250) to receive $200 in free credits for 60 days - perfect for running this course project at no cost!
 
-**Quick Setup:**
+**How it works:** GitHub Actions trains the model, commits it to the repository, then explicitly triggers deployment to DigitalOcean App Platform using `digitalocean/app_action/deploy@v2`.
+
+**Quick Setup (Automated):**
+```bash
+# Install doctl CLI and authenticate
+doctl auth init
+
+# Run the initialization script to create all 3 apps
+./scripts/init_digitalocean_apps.sh
+```
+
+**Manual Setup:**
 1. Create a DigitalOcean account at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250) (includes $200 free credit)
 2. Generate an API token (API → Tokens/Keys)
-3. Add token to GitHub Secrets as `DIGITALOCEAN_ACCESS_TOKEN`
-4. Push to `master` branch to trigger deployment
+3. Run `./scripts/init_digitalocean_apps.sh` to create apps automatically, or create them manually via the DigitalOcean dashboard
+4. Configure GitHub Secrets:
+   - `DIGITALOCEAN_ACCESS_TOKEN` - Your DigitalOcean API token
+   - `PRODUCTION_APP_URL` - Production app URL
+   - `STAGING_APP_URL` - Staging app URL  
+   - `DEV_APP_URL` - Development app URL
+5. Push to `master` branch to trigger first deployment
 
-**Detailed Instructions:** See [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+**Documentation:**
+- **Quick setup script:** `./scripts/init_digitalocean_apps.sh`
+- **Step-by-step guide:** [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
+- **API usage guide:** [API_GUIDE.md](./API_GUIDE.md)
 
-**Cost:** ~$5/month (Basic tier with 512MB RAM)
+**Cost:** ~$5/month per environment (Basic tier with 512MB RAM)
 
 The deployment automatically:
-- ✅ Builds Docker container with trained model
-- ✅ Deploys FastAPI application
-- ✅ Configures health checks
+- ✅ Trains model in GitHub Actions CI
+- ✅ Commits trained model to repository with `[skip ci]`
+- ✅ Explicitly triggers deployment via `digitalocean/app_action/deploy@v2`
+- ✅ Builds Docker container with model
+- ✅ Deploys FastAPI application with health checks
 - ✅ Provides public HTTPS endpoint
-- ✅ Runs automated smoke tests
+- ✅ Runs automated health check validation
 
 **Access your deployed API:**
 - Health check: `https://your-app.ondigitalocean.app/health`

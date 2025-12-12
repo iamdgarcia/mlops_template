@@ -147,5 +147,4 @@ logs/
 # Data directory - allow essential deployment files
 data/*
 !data/selected_features.json
-!data/training_summary.json
 !data/.gitkeep

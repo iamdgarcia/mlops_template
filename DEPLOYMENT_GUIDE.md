@@ -7,19 +7,44 @@ This guide walks you through deploying the fraud detection API to DigitalOcean A
 The deployment uses:
 - **Platform**: DigitalOcean App Platform (PaaS)
 - **CI/CD**: GitHub Actions with `digitalocean/app_action/deploy@v2`
-- **Cost**: ~$5/month (Basic tier: 512MB RAM, 0.5 vCPU)
-  - **FREE for course students!** New signups get $200 credit (40 months free)
-- **Deployment**: Automatic on push to `master`, `staging`, or `develop` branches
+- **Deployment Method**: Explicit deployment triggered by GitHub Actions
+- **Cost**: ~$5/month per environment (Basic tier: 512MB RAM, 0.5 vCPU)
+  - **FREE for course students!** New signups get $200 credit (40 months free for 1 app)
+- **Environments**: Production (master), Staging (staging), Development (develop)
 
 ## Prerequisites
 
-1. **GitHub Repository**: Code pushed to `iamdgarcia/mlops_template`
+1. **GitHub Repository**: Code pushed to GitHub
 2. **DigitalOcean Account**: Sign up at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250)
    - 💰 **New users get $200 in free credits for 60 days!**
    - More than enough to run this project for the entire course
-3. **DigitalOcean API Token**: For GitHub Actions authentication
+3. **doctl CLI**: DigitalOcean command-line tool ([installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/))
+4. **DigitalOcean API Token**: For app creation and deployment
 
-## Setup Steps
+## Quick Setup (Automated)
+
+We provide a script that automatically creates all three app environments:
+
+```bash
+# Make sure you're authenticated with doctl first
+doctl auth init
+
+# Run the initialization script
+./scripts/init_digitalocean_apps.sh
+```
+
+This script will:
+1. ✅ Create three apps (production, staging, development)
+2. ✅ Configure each app with the correct GitHub branch
+3. ✅ Generate app URLs and IDs
+4. ✅ Create `.env.digitalocean` file with all configuration
+5. ✅ Provide instructions for GitHub Secrets setup
+
+**After running the script**, skip to [Step 4: Configure GitHub Secrets](#step-4-configure-github-secrets).
+
+## Manual Setup (Step-by-Step)
+
+If you prefer manual setup or the script doesn't work for your environment:
 
 ### Step 1: Create DigitalOcean API Token
 
@@ -33,19 +58,28 @@ The deployment uses:
 5. Click **Generate Token**
 6. **Copy the token immediately** (you won't see it again!)
 
-### Step 2: Add Token to GitHub Secrets
+### Step 4: Configure GitHub Secrets
 
-1. Go to your GitHub repository: https://github.com/iamdgarcia/mlops_template
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **New repository secret**
-4. Configure secret:
-   - **Name**: `DIGITALOCEAN_ACCESS_TOKEN`
-   - **Value**: Paste the token from Step 1
-5. Click **Add secret**
+1. Go to your GitHub repository settings: **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret** for each of the following:
+
+**Required Secrets:**
+
+| Secret Name | Value | Purpose |
+|-------------|-------|---------|
+| `DIGITALOCEAN_ACCESS_TOKEN` | Your API token from Step 1 | Deploy apps via GitHub Actions |
+| `PRODUCTION_APP_URL` | `https://fraud-detection-api-xxxxx.ondigitalocean.app` | Health check validation |
+| `STAGING_APP_URL` | `https://fraud-detection-api-staging-xxxxx.ondigitalocean.app` | Staging health checks |
+| `DEV_APP_URL` | `https://fraud-detection-api-dev-xxxxx.ondigitalocean.app` | Dev health checks |
+
+> ℹ️ **Finding URLs:** 
+> - If you used the automated script: Check the `.env.digitalocean` file
+> - If manual setup: Go to DigitalOcean dashboard → Apps → Select your app → Copy the URL
+> - URLs are also shown when you run: `doctl apps get <app-id> --format LiveURL`
 
 ### Step 3: Authenticate GitHub with App Platform
 
-DigitalOcean App Platform needs permission to access your GitHub repository.
+DigitalOcean App Platform needs permission to access your GitHub repository for auto-deploy.
 
 **Option A: Via DigitalOcean Control Panel (Easiest)**
 
