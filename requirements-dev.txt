@@ -3,15 +3,15 @@
 # These dependencies are NOT needed in production containers
 
 ## Testing Framework
-pytest~=7.4.0          # Testing framework
-pytest-cov~=4.1.0      # Test coverage reporting
-pytest-mock~=3.11.0    # Mocking support for tests
-pytest-asyncio~=0.21.0 # Async test support
+pytest~=8.4.2          # Testing framework
+pytest-cov~=7.0.0      # Test coverage reporting
+pytest-mock~=3.15.1    # Mocking support for tests
+pytest-asyncio~=1.2.0 # Async test support
 
 ## Code Quality and Formatting
-black~=23.1.0          # Code formatter
-flake8~=6.0.0          # Linting and style checking
-isort~=5.12.0          # Import statement sorting
+black~=25.11.0          # Code formatter
+flake8~=7.3.0          # Linting and style checking
+isort~=6.1.0          # Import statement sorting
 mypy~=1.4.0            # Static type checking
 pylint~=2.17.0         # Comprehensive code analysis
 
