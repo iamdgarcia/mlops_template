@@ -145,4 +145,5 @@ logs/
 # Data directory - allow essential deployment files
 data/*
 !data/selected_features.json
+!data/production_model_baseline.json
 !data/.gitkeep
