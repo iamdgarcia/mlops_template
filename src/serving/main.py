@@ -12,7 +12,7 @@ from uuid import uuid4
 import pandas as pd
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..config import ConfigManager, setup_logging
 from ..inference import InferencePipeline, create_sample_transaction
@@ -24,6 +24,27 @@ logger = logging.getLogger(__name__)
 
 
 class TransactionRequest(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "amount": 127.45,
+                "merchant_category": "grocery",
+                "transaction_type": "purchase",
+                "location": "seattle_wa",
+                "device_type": "mobile",
+                "hour_of_day": 14,
+                "day_of_week": 2,
+                "user_id": "user_00123",
+                "transaction_id": "txn_123456",
+                "timestamp": "2024-12-12T14:30:00",
+                "device_id": "device_00456",
+                "user_transaction_frequency": 5.2,
+                "user_avg_amount": 85.50,
+                "user_transaction_count": 42,
+            }
+        }
+    )
+
     amount: float = Field(..., gt=0, description="Transaction amount")
     merchant_category: str = Field(..., description="Merchant category")
     transaction_type: str = Field(..., description="Transaction type")

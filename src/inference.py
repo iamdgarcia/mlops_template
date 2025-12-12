@@ -361,6 +361,7 @@ def create_sample_transaction() -> Dict[str, Any]:
         amount = rng.lognormal(4, 0.9)
         merchant_cat = rng.choice(merchant_categories)
         device_type = rng.choice(device_types)
+    timestamp = datetime.now() - timedelta(hours=int(rng.integers(0, 720)))
     return {
         "transaction_id": f"txn_{rng.integers(1, 1000000):06d}",
         "user_id": f"user_{rng.integers(1, 5000):05d}",
@@ -375,7 +376,7 @@ def create_sample_transaction() -> Dict[str, Any]:
         "user_transaction_frequency": float(rng.uniform(1, 20)),
         "user_avg_amount": float(rng.uniform(50, 300)),
         "user_transaction_count": int(rng.integers(1, 100)),
-        "timestamp": datetime.now() - timedelta(hours=int(rng.integers(0, 720))),
+        "timestamp": timestamp.isoformat(),
     }
 
 
