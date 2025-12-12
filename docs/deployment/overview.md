@@ -36,28 +36,27 @@ This document provides a high-level overview of the deployment architecture. For
 
 ## Key Features
 
-✅ **Git-based Auto-Deploy**: No manual deployment needed  
+✅ **Git-based Auto-Deploy**: Automatic deployment on git push - no secrets required  
 ✅ **Model Versioning**: Models committed to git for version control  
 ✅ **Zero-downtime**: DigitalOcean handles blue-green deployment  
 ✅ **Health Checks**: Automated validation after deployment  
 ✅ **Multi-environment**: Production, Staging, Development  
-✅ **Cost-effective**: ~$5/month (FREE with $200 credit)
+✅ **Cost-effective**: ~$5/month (FREE with $200 credit)  
+✅ **Simple Setup**: No API tokens or secrets to manage after initial setup
 
-## GitHub Secrets Configuration
+## Initial Setup
 
-**Required for all environments:**
+**One-time setup using doctl CLI:**
 
-| Secret | Example Value | Usage |
-|--------|---------------|-------|
-| `DIGITALOCEAN_ACCESS_TOKEN` | `dop_v1_abc123...` | Create/manage apps |
-| `PRODUCTION_APP_URL` | `https://fraud-api.ondigitalocean.app` | Health checks |
-| `STAGING_APP_URL` | `https://fraud-api-staging.ondigitalocean.app` | Health checks |
-| `DEV_APP_URL` | `https://fraud-api-dev.ondigitalocean.app` | Health checks |
+```bash
+# Install and authenticate doctl (DigitalOcean CLI)
+doctl auth init
 
-**How to set:**
-1. GitHub Repository → Settings → Secrets and variables → Actions
-2. Click "New repository secret"
-3. Add each secret from the table above
+# Run the initialization script
+./scripts/init_digitalocean_apps.sh
+```
+
+This creates all three app environments and configures auto-deploy. No GitHub secrets or API tokens needed in your workflow!
 
 ## Deployment Workflow
 
@@ -65,10 +64,11 @@ This document provides a high-level overview of the deployment architecture. For
 ```bash
 git push origin master
 ```
-1. Triggers `deploy-production` job
+1. Triggers GitHub Actions workflow
 2. Trains model, commits to repository
-3. DigitalOcean auto-deploys in ~90 seconds
-4. Health check validates deployment
+3. Git push triggers DigitalOcean webhook
+4. DigitalOcean auto-builds and deploys in ~90 seconds
+5. App Platform runs health checks automatically
 
 ### Staging (staging branch)
 ```bash
@@ -110,14 +110,24 @@ Same process, deploys to development environment
 Before your first deployment:
 
 - [ ] Create DigitalOcean account (use affiliate link for $200 credit)
-- [ ] Generate DigitalOcean API token
-- [ ] Add `DIGITALOCEAN_ACCESS_TOKEN` to GitHub Secrets
-- [ ] Create app in DigitalOcean (following DEPLOYMENT_GUIDE.md)
-- [ ] Add app URLs to GitHub Secrets (`*_APP_URL`)
-- [ ] Authorize DigitalOcean to access GitHub repository
+- [ ] Install doctl CLI: `brew install doctl` or see [installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/)
+- [ ] Authenticate doctl: `doctl auth init`
+- [ ] Run initialization script: `./scripts/init_digitalocean_apps.sh`
+- [ ] Authorize DigitalOcean to access GitHub repository (done during script)
 - [ ] Push to `master` branch to trigger first deployment
-- [ ] Verify health check passes
+- [ ] Monitor deployment in DigitalOcean dashboard: https://cloud.digitalocean.com/apps
 - [ ] Test API endpoints using API_GUIDE.md
+
+## Monitoring Deployments
+
+**GitHub Actions:**
+- View workflow runs: https://github.com/iamdgarcia/mlops_template/actions
+- Check model training and commit status
+
+**DigitalOcean Dashboard:**
+- View deployment status: https://cloud.digitalocean.com/apps
+- Check build logs and runtime logs
+- Monitor resource usage and health checks
 
 ## Troubleshooting
 

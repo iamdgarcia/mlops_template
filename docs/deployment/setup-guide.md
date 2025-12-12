@@ -6,8 +6,8 @@ This guide walks you through deploying the fraud detection API to DigitalOcean A
 
 The deployment uses:
 - **Platform**: DigitalOcean App Platform (PaaS)
-- **CI/CD**: GitHub Actions with `digitalocean/app_action/deploy@v2`
-- **Deployment Method**: Explicit deployment triggered by GitHub Actions
+- **CI/CD**: GitHub Actions for training and model versioning
+- **Deployment Method**: Automatic deployment via git push (DigitalOcean webhook)
 - **Cost**: ~$5/month per environment (Basic tier: 512MB RAM, 0.5 vCPU)
   - **FREE for course students!** New signups get $200 credit (40 months free for 1 app)
 - **Environments**: Production (master), Staging (staging), Development (develop)
@@ -18,8 +18,7 @@ The deployment uses:
 2. **DigitalOcean Account**: Sign up at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250)
    - 💰 **New users get $200 in free credits for 60 days!**
    - More than enough to run this project for the entire course
-3. **doctl CLI**: DigitalOcean command-line tool ([installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/))
-4. **DigitalOcean API Token**: For app creation and deployment
+3. **doctl CLI**: DigitalOcean command-line tool ([installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/)) - for initial app setup only
 
 ## Quick Setup (Automated)
 
@@ -35,49 +34,18 @@ doctl auth init
 
 This script will:
 1. ✅ Create three apps (production, staging, development)
-2. ✅ Configure each app with the correct GitHub branch
-3. ✅ Generate app URLs and IDs
-4. ✅ Create `.env.digitalocean` file with all configuration
-5. ✅ Provide instructions for GitHub Secrets setup
+2. ✅ Configure each app with the correct GitHub branch and auto-deploy
+3. ✅ Authorize GitHub repository access
+4. ✅ Generate app URLs and IDs
+5. ✅ Create `.env.digitalocean` file with all configuration
 
-**After running the script**, skip to [Step 4: Configure GitHub Secrets](#step-4-configure-github-secrets).
+**After running the script**, deployment is ready! Just push to `master`, `staging`, or `develop` to trigger automatic deployment.
 
 ## Manual Setup (Step-by-Step)
 
 If you prefer manual setup or the script doesn't work for your environment:
 
-### Step 1: Create DigitalOcean API Token
-
-1. Log in to DigitalOcean: https://m.do.co/c/eddc62174250
-2. Navigate to **API** → **Tokens/Keys** (or visit https://cloud.digitalocean.com/account/api/tokens)
-3. Click **Generate New Token**
-4. Configure token:
-   - **Name**: `GitHub Actions MLOps Template`
-   - **Expiration**: 90 days (or No expiry for course)
-   - **Scopes**: Check **Read** and **Write**
-5. Click **Generate Token**
-6. **Copy the token immediately** (you won't see it again!)
-
-### Step 4: Configure GitHub Secrets
-
-1. Go to your GitHub repository settings: **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret** for each of the following:
-
-**Required Secrets:**
-
-| Secret Name | Value | Purpose |
-|-------------|-------|---------|
-| `DIGITALOCEAN_ACCESS_TOKEN` | Your API token from Step 1 | Deploy apps via GitHub Actions |
-| `PRODUCTION_APP_URL` | `https://fraud-detection-api-xxxxx.ondigitalocean.app` | Health check validation |
-| `STAGING_APP_URL` | `https://fraud-detection-api-staging-xxxxx.ondigitalocean.app` | Staging health checks |
-| `DEV_APP_URL` | `https://fraud-detection-api-dev-xxxxx.ondigitalocean.app` | Dev health checks |
-
-> ℹ️ **Finding URLs:** 
-> - If you used the automated script: Check the `.env.digitalocean` file
-> - If manual setup: Go to DigitalOcean dashboard → Apps → Select your app → Copy the URL
-> - URLs are also shown when you run: `doctl apps get <app-id> --format LiveURL`
-
-### Step 3: Authenticate GitHub with App Platform
+### Step 1: Authenticate GitHub with App Platform
 
 DigitalOcean App Platform needs permission to access your GitHub repository for auto-deploy.
 
@@ -107,10 +75,10 @@ git push origin master
 **Deployment Flow:**
 1. GitHub Actions runs all tests and validations
 2. Trains the ML model
-3. Builds Docker container
-4. Deploys to DigitalOcean App Platform
-5. Runs health checks
-6. Reports deployment URL
+3. Commits the trained model to the repository
+4. Git push triggers DigitalOcean webhook
+5. DigitalOcean automatically builds Docker container and deploys
+6. App Platform runs health checks and routes traffic
 
 ### Step 5: Monitor Deployment
 
@@ -217,11 +185,17 @@ Automated workflow:
 
 ### Issue: "Error: Could not find app"
 
-**Solution**: App Platform needs GitHub authorization. Follow Step 3 to authorize.
+**Solution**: App Platform needs GitHub authorization. Follow Step 1 to authorize.
 
-### Issue: "Error: Authentication failed"
+### Issue: "Deployment not triggering"
 
-**Solution**: Check that `DIGITALOCEAN_ACCESS_TOKEN` is correctly set in GitHub Secrets.
+**Symptoms**: You pushed code but DigitalOcean isn't deploying
+
+**Solutions:**
+1. Verify `deploy_on_push: true` is set in `.do/app.yaml`
+2. Check that GitHub is authorized in DigitalOcean: https://cloud.digitalocean.com/apps
+3. Check app settings in DigitalOcean dashboard for webhook configuration
+4. Verify the git push was successful and reached GitHub
 
 ### Issue: "Health check failed"
 

@@ -1,0 +1,87 @@
+name: Drift Monitoring
+
+on:
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  drift-detection:
+    name: Daily Drift Detection
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run drift detection
+      run: |
+        echo "Running scheduled drift detection"
+        python -c '
+        from src.drift_detection import DriftDetector
+        import pandas as pd
+        import json
+        from datetime import datetime
+        
+        reference_data = pd.read_csv("data/transactions_final.csv")
+        current_data = reference_data.sample(n=1000, random_state=42)
+        
+        with open("data/selected_features.json", "r") as f:
+            feature_info = json.load(f)
+            selected_features = feature_info.get("features", [])
+        
+        detector = DriftDetector(reference_data, selected_features)
+        drift_count = 0
+        
+        for feature in selected_features[:5]:
+            result = detector.detect_feature_drift(current_data, feature)
+            if result["drift_detected"]:
+                drift_count += 1
+                print(f"⚠️ Drift detected in {feature}: p-value={result[\"p_value\"]:.4f}")
+        
+        if drift_count > 0:
+            print(f"\n⚠️ Total features with drift: {drift_count}")
+            exit(1)
+        else:
+            print("✓ No significant drift detected")
+        '
+    
+    - name: Create issue on drift detection
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: '⚠️ Data Drift Detected',
+            body: `Data drift was detected during the scheduled monitoring run.
+            
+            **Workflow Run**: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}
+            **Timestamp**: ${new Date().toISOString()}
+            
+            Please investigate and consider retraining the model.
+            
+            ## How to Retrain
+            
+            1. Go to [Actions tab](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/workflows/model-retrain.yml)
+            2. Click "Run workflow"
+            3. Select target environment
+            4. Optionally create a release
+            5. Click "Run workflow" button`,
+            labels: ['drift-alert', 'model-monitoring']
+          })

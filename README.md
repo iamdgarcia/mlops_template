@@ -169,11 +169,11 @@ This repository is designed for:
 
 ### DigitalOcean App Platform (Recommended for Course)
 
-This project includes automated deployment to DigitalOcean App Platform using GitHub Actions with **explicit deployment triggers**.
+This project includes automated deployment to DigitalOcean App Platform with **git-based auto-deploy** - no API tokens or secrets needed!
 
 > 💰 **Get $200 Free Credit!** Sign up using [this link](https://m.do.co/c/eddc62174250) to receive $200 in free credits for 60 days - perfect for running this course project at no cost!
 
-**How it works:** GitHub Actions trains the model, commits it to the repository, then explicitly triggers deployment to DigitalOcean App Platform using `digitalocean/app_action/deploy@v2`.
+**How it works:** GitHub Actions trains the model and commits it to the repository. DigitalOcean automatically detects the git push and deploys via webhook - simple and secure!
 
 **Quick Setup (Automated):**
 ```bash
@@ -186,13 +186,9 @@ doctl auth init
 
 **Manual Setup:**
 1. Create a DigitalOcean account at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250) (includes $200 free credit)
-2. Generate an API token (API → Tokens/Keys)
-3. Run `./scripts/init_digitalocean_apps.sh` to create apps automatically, or create them manually via the DigitalOcean dashboard
-4. Configure GitHub Secrets:
-   - `DIGITALOCEAN_ACCESS_TOKEN` - Your DigitalOcean API token
-   - `PRODUCTION_APP_URL` - Production app URL
-   - `STAGING_APP_URL` - Staging app URL  
-   - `DEV_APP_URL` - Development app URL
+2. Install doctl CLI: `brew install doctl` or see [installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/)
+3. Authenticate: `doctl auth init`
+4. Run `./scripts/init_digitalocean_apps.sh` to create apps automatically
 5. Push to `master` branch to trigger first deployment
 
 **Documentation:**
@@ -205,11 +201,11 @@ doctl auth init
 The deployment automatically:
 - ✅ Trains model in GitHub Actions CI
 - ✅ Commits trained model to repository with `[skip ci]`
-- ✅ Explicitly triggers deployment via `digitalocean/app_action/deploy@v2`
+- ✅ Triggers DigitalOcean auto-deploy via git webhook
 - ✅ Builds Docker container with model
 - ✅ Deploys FastAPI application with health checks
 - ✅ Provides public HTTPS endpoint
-- ✅ Runs automated health check validation
+- ✅ Zero-downtime blue-green deployment
 
 **Access your deployed API:**
 - Health check: `https://your-app.ondigitalocean.app/health`
@@ -222,6 +218,38 @@ Run the test suite to validate the implementation:
 ```bash
 pytest tests/
 ```
+
+## 📚 Documentation
+
+**Complete documentation is available in the [`docs/`](docs/) directory.**
+
+### Quick Links
+
+- **[Getting Started](docs/getting-started/quick-start.md)** - 15-minute setup guide
+- **[Deployment Guide](docs/deployment/setup-guide.md)** - Production deployment
+- **[API Reference](docs/api/guide.md)** - API usage and examples
+- **[Architecture](docs/architecture.md)** - System design and decisions
+
+### Documentation Structure
+
+```
+docs/
+├── README.md                      # Documentation index and navigation
+├── getting-started/               # Setup and user guides
+│   ├── requirements.md            # Prerequisites
+│   ├── quick-start.md             # Quick setup guide
+│   └── user-guide.md              # Comprehensive manual
+├── deployment/                    # Deployment guides
+│   ├── overview.md                # Architecture overview
+│   ├── setup-guide.md             # DigitalOcean setup
+│   ├── workflow-changes.md        # CI/CD workflows
+│   └── troubleshooting.md         # Common issues
+├── api/                           # API documentation
+│   └── guide.md                   # API reference
+└── DEPLOYMENT_MECHANICS.md        # Technical deployment details
+```
+
+**👉 Start here**: [docs/README.md](docs/README.md) for the complete documentation index.
 
 ## Contributing
 

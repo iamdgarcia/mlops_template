@@ -1,0 +1,280 @@
+name: Model Retraining & Deployment
+
+on:
+  # Manual trigger only
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      create_release:
+        description: 'Create GitHub release'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  MLFLOW_TRACKING_URI: sqlite:///mlruns.db
+
+jobs:
+  determine-environment:
+    name: Determine Target Environment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      branch: ${{ steps.set-env.outputs.branch }}
+    
+    steps:
+    - name: Set environment
+      id: set-env
+      run: |
+        ENV="${{ inputs.environment }}"
+        
+        # Map environment to branch
+        case $ENV in
+          production)
+            BRANCH="master"
+            ;;
+          staging)
+            BRANCH="staging"
+            ;;
+          development)
+            BRANCH="develop"
+            ;;
+        esac
+        
+        echo "environment=$ENV" >> $GITHUB_OUTPUT
+        echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+        echo "🎯 Target environment: $ENV (branch: $BRANCH)"
+
+  data-pipeline:
+    name: Run Data Pipeline
+    runs-on: ubuntu-latest
+    needs: determine-environment
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.determine-environment.outputs.branch }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create necessary directories
+      run: |
+        mkdir -p data models logs mlruns
+    
+    - name: Run full data pipeline
+      run: |
+        python scripts/run_data_pipeline.py
+    
+    - name: Validate pipeline outputs
+      run: |
+        test -f data/transactions_raw.csv || exit 1
+        test -f data/transactions_processed.csv || exit 1
+        test -f data/transactions_final.csv || exit 1
+        test -f data/selected_features.json || exit 1
+        echo "✓ All required data files created"
+    
+    - name: Upload pipeline artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pipeline-outputs
+        path: data/
+        retention-days: 7
+
+  model-training:
+    name: Train and Register Model
+    runs-on: ubuntu-latest
+    needs: [determine-environment, data-pipeline]
+    outputs:
+      model-metrics: ${{ steps.train.outputs.metrics }}
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.determine-environment.outputs.branch }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create necessary directories
+      run: |
+        mkdir -p data mlruns models logs
+    
+    - name: Download pipeline artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: pipeline-outputs
+        path: data/
+    
+    - name: Verify downloaded artifacts
+      run: |
+        echo "Checking for downloaded data files..."
+        test -f data/transactions_final.csv || (echo "Error: transactions_final.csv not found" && exit 1)
+        test -f data/selected_features.json || (echo "Error: selected_features.json not found" && exit 1)
+        echo "✓ All required data files present"
+    
+    - name: Train and register models
+      id: train
+      env:
+        USE_PREPROCESSED_DATA: "true"
+      run: |
+        python scripts/run_training.py
+        
+        # Extract metrics for output
+        if [ -f data/training_summary.json ]; then
+          METRICS=$(cat data/training_summary.json | jq -c '.')
+          echo "metrics=$METRICS" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: Verify model was created
+      run: |
+        echo "Checking for trained model..."
+        if [ ! -f models/*_final_model.joblib ]; then
+          echo "Error: No model file found after training"
+          exit 1
+        fi
+        echo "✓ Model file created successfully"
+    
+    - name: Validate deployment package
+      run: |
+        python scripts/validate_deployment.py
+    
+    - name: Upload trained model artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: trained-models
+        path: |
+          models/*.joblib
+          data/selected_features.json
+          data/training_summary.json
+        retention-days: 90
+
+  deploy-to-git:
+    name: Commit Model to Git
+    runs-on: ubuntu-latest
+    needs: [determine-environment, model-training]
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.determine-environment.outputs.branch }}
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Download trained models
+      uses: actions/download-artifact@v4
+      with:
+        name: trained-models
+        path: .
+    
+    - name: Verify artifacts
+      run: |
+        ls -la models/*.joblib || exit 1
+        test -f data/selected_features.json || exit 1
+        echo "✓ Artifacts verified"
+    
+    - name: Commit model to repository
+      run: |
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git add models/*.joblib data/selected_features.json data/training_summary.json
+        
+        # Create detailed commit message
+        TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        git diff --staged --quiet || git commit -m "chore: update trained model [skip ci]
+
+        Environment: ${{ needs.determine-environment.outputs.environment }}
+        Timestamp: $TIMESTAMP
+        Triggered by: Manual workflow dispatch
+        Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        
+        git push
+        echo "✓ Model committed and pushed to repository"
+        echo "🚀 DigitalOcean will automatically deploy on git push detection"
+        echo "🌐 Monitor deployment at: https://cloud.digitalocean.com/apps"
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [determine-environment, model-training, deploy-to-git]
+    if: inputs.create_release == true
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        ref: ${{ needs.determine-environment.outputs.branch }}
+        fetch-depth: 0
+    
+    - name: Download trained models
+      uses: actions/download-artifact@v4
+      with:
+        name: trained-models
+        path: release-artifacts/
+    
+    - name: Generate release notes
+      id: release-notes
+      run: |
+        TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+        VERSION="v${{ needs.determine-environment.outputs.environment }}-${TIMESTAMP}"
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        cat > release-notes.md << EOF
+        # Model Release $VERSION
+        
+        ## Training Information
+        - **Environment**: ${{ needs.determine-environment.outputs.environment }}
+        - **Branch**: ${{ needs.determine-environment.outputs.branch }}
+        - **Triggered by**: Manual workflow dispatch
+        - **Timestamp**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+        - **Triggered by**: @${{ github.actor }}
+        
+        ## Artifacts Included
+        - Trained model (*.joblib)
+        - Selected features configuration
+        - Training summary and metrics
+        
+        ## Deployment
+        This model has been automatically deployed to the ${{ needs.determine-environment.outputs.environment }} environment.
+        
+        Monitor deployment at: https://cloud.digitalocean.com/apps
+        
+        ## Workflow Run
+        [View workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+        EOF
+        
+        cat release-notes.md
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.release-notes.outputs.version }}
+        name: Model Release ${{ steps.release-notes.outputs.version }}
+        body_path: release-notes.md
+        files: |
+          release-artifacts/**
+        draft: false
+        prerelease: ${{ needs.determine-environment.outputs.environment != 'production' }}
