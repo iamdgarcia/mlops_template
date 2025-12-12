@@ -142,8 +142,7 @@ def _persist_outputs(
     # Save backward-compatible files for GitHub Actions and legacy scripts
     data_dir = Path("data")
     data_dir.mkdir(parents=True, exist_ok=True)
-    
+
     raw_df.to_csv(data_dir / "transactions_raw.csv", index=False)
     cleaned_df.to_csv(data_dir / "transactions_processed.csv", index=False)
     features_df.to_csv(data_dir / "transactions_final.csv", index=False)
-
