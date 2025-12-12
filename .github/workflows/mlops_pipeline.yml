@@ -142,7 +142,7 @@ jobs:
     
     - name: Run full data pipeline
       run: |
-        python scripts/run_full_pipeline.py
+        python scripts/run_data_pipeline.py
     
     - name: Validate pipeline outputs
       run: |
@@ -159,7 +159,6 @@ jobs:
         path: |
           data/*.csv
           data/*.json
-          models/*.joblib
         retention-days: 7
 
   model-training:
@@ -193,56 +192,40 @@ jobs:
     
     - name: Train and register models
       run: |
-        python -c '
-        from src.pipelines import run_training_pipeline
-        from src.config import ConfigManager
-        
-        config_manager = ConfigManager()
-        config = config_manager.get_training_config()
-        
-        # Run training pipeline
-        results = run_training_pipeline(config)
-        print(f"Training complete. Best model: {results[\"best_model_name\"]}")
-        print(f"Best ROC-AUC: {results[\"best_roc_auc\"]:.4f}")
-        '
+        python scripts/run_training.py
     
-    - name: Upload model artifacts
+    - name: Validate deployment package
+      run: |
+        python scripts/validate_deployment.py
+    
+    - name: Upload trained model artifacts
       uses: actions/upload-artifact@v4
       with:
         name: trained-models
         path: |
           models/*.joblib
-          mlruns/
+          data/selected_features.json
+          data/training_summary.json
         retention-days: 30
-
-  docker-build:
-    name: Build and Test Docker Image
-    runs-on: ubuntu-latest
-    needs: unit-tests
     
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    
-    - name: Build Docker image
-      uses: docker/build-push-action@v4
+    - name: Upload deployment package
+      uses: actions/upload-artifact@v4
       with:
-        context: .
-        push: false
-        tags: fraud-detection:${{ github.sha }},fraud-detection:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-    
-    - name: Test Docker container
-      run: |
-        docker run --rm fraud-detection:latest python -c "import src; print('✓ Container imports working')"
+        name: deployment-package
+        path: |
+          models/*.joblib
+          data/selected_features.json
+          configs/
+          src/
+          requirements.txt
+          scripts/serve_model.py
+          scripts/validate_deployment.py
+        retention-days: 30
 
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: [model-training, docker-build]
+    needs: [model-training]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment:
       name: staging
@@ -251,27 +234,40 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Download trained models
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
-        name: trained-models
+        name: deployment-package
+    
+    - name: Verify deployment artifacts
+      run: |
+        python scripts/validate_deployment.py
     
     - name: Deploy to staging environment
       run: |
         echo "🚀 Deploying to staging environment"
-        echo "✓ Model artifacts downloaded"
+        echo "✓ Model artifacts verified"
         echo "✓ Configuration validated"
         # Add your actual deployment commands here
-        # Examples:
-        # - kubectl apply -f k8s/staging/
-        # - aws ecs update-service --cluster staging --service fraud-api
-        # - gcloud run deploy fraud-api --region us-central1
+        # Examples for Google Cloud Run:
+        # gcloud run deploy fraud-detection-staging \
+        #   --source . \
+        #   --region us-central1 \
+        #   --platform managed \
+        #   --allow-unauthenticated \
+        #   --set-env-vars ENVIRONMENT=staging
     
     - name: Run health check
       run: |
         echo "🏥 Running health checks on staging deployment"
         # Add health check commands
         # curl -f https://staging-fraud-detection.example.com/health || exit 1
+        # curl -f https://staging-fraud-detection.example.com/model/info || exit 1
 
   deploy-production:
     name: Deploy to Production
@@ -285,27 +281,51 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: Download trained models
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Download deployment package
       uses: actions/download-artifact@v4
       with:
-        name: trained-models
+        name: deployment-package
+    
+    - name: Verify deployment artifacts
+      run: |
+        python scripts/validate_deployment.py
     
     - name: Deploy to production environment
       run: |
         echo "🚀 Deploying to production environment"
-        echo "✓ Model artifacts downloaded"
+        echo "✓ Model artifacts verified"
         echo "✓ Configuration validated"
         # Add your actual production deployment commands here
+        # Examples for Google Cloud Run:
+        # gcloud run deploy fraud-detection-prod \
+        #   --source . \
+        #   --region us-central1 \
+        #   --platform managed \
+        #   --allow-unauthenticated \
+        #   --set-env-vars ENVIRONMENT=production \
+        #   --min-instances 1 \
+        #   --max-instances 10
     
     - name: Run production health check
       run: |
         echo "🏥 Running health checks on production deployment"
         # Add health check commands
+        # curl -f https://fraud-detection.example.com/health || exit 1
+        # curl -f https://fraud-detection.example.com/model/info || exit 1
     
     - name: Notify deployment
       run: |
         echo "📢 Production deployment complete"
         # Add notification logic (Slack, email, etc.)
+        # Example: Send to Slack webhook
+        # curl -X POST -H 'Content-type: application/json' \
+        #   --data '{"text":"Fraud Detection Model deployed to production"}' \
+        #   $SLACK_WEBHOOK_URL
 
   drift-detection:
     name: Drift Detection Monitoring
