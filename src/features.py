@@ -73,7 +73,15 @@ class FeatureEngineer:
 
         if "timestamp" in df_temp.columns:
             # Ensure timestamp is datetime
-            df_temp["timestamp"] = pd.to_datetime(df_temp["timestamp"])
+            try:
+                df_temp["timestamp"] = pd.to_datetime(df_temp["timestamp"])
+            except (ValueError, pd.errors.ParserError) as exc:
+                invalid_values = df_temp["timestamp"].unique()[:5]  # Show first 5 unique values
+                raise ValueError(
+                    f"Failed to parse timestamp column. Expected ISO datetime format (e.g., '2024-01-01T12:00:00'). "
+                    f"Found invalid values: {invalid_values.tolist()}. "
+                    f"Original error: {exc}"
+                ) from exc
 
             # Basic time features
             df_temp["hour_of_day"] = df_temp["timestamp"].dt.hour

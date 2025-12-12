@@ -12,7 +12,7 @@ from uuid import uuid4
 import pandas as pd
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from ..config import ConfigManager, setup_logging
 from ..inference import InferencePipeline, create_sample_transaction
@@ -60,6 +60,22 @@ class TransactionRequest(BaseModel):
         if not value:
             raise ValueError("device_type must be provided")
         return value
+
+    @validator("timestamp")
+    def validate_timestamp(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        # Allow common placeholder values to pass through (will be replaced with defaults)
+        if value.lower() in ["string", "null", "none", ""]:
+            return None
+        # Validate that it's a parseable datetime string
+        try:
+            datetime.fromisoformat(value.replace('Z', '+00:00'))
+            return value
+        except (ValueError, AttributeError) as exc:
+            raise ValueError(
+                f"timestamp must be a valid ISO datetime string (e.g., '2024-01-01T12:00:00'), got: {value}"
+            ) from exc
 
 
 class PredictionResponse(BaseModel):
