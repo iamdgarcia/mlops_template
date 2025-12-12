@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Validate deployment package before deploying to production."""
+"""Validate deployment package and enforce quality gates before deploying to production."""
 
 from __future__ import annotations
 
 import json
 import sys
+import yaml
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Tuple, Any, Optional
 
 # Add project root to Python path
 project_root = Path(__file__).resolve().parent.parent
@@ -22,6 +23,172 @@ def check_file_exists(path: Path, description: str) -> bool:
     else:
         print(f"✗ {description} NOT FOUND: {path}")
         return False
+
+
+def load_training_config() -> Dict[str, Any]:
+    """Load training configuration from YAML."""
+    config_path = project_root / "configs" / "training_config.yaml"
+    if not config_path.exists():
+        print(f"⚠ Warning: Training config not found at {config_path}")
+        return {}
+    
+    with open(config_path) as f:
+        return yaml.safe_load(f)
+
+
+def load_production_baseline() -> Optional[Dict[str, Any]]:
+    """Load production model baseline metrics if available."""
+    config = load_training_config()
+    baseline_path = config.get("deployment", {}).get(
+        "production_baseline_path", 
+        "data/production_model_baseline.json"
+    )
+    baseline_file = project_root / baseline_path
+    
+    if not baseline_file.exists():
+        print("ℹ No production baseline found (first deployment)")
+        return None
+    
+    try:
+        with open(baseline_file) as f:
+            baseline = json.load(f)
+            print(f"✓ Production baseline loaded: {baseline_file}")
+            return baseline
+    except Exception as e:
+        print(f"⚠ Warning: Could not load production baseline: {e}")
+        return None
+
+
+def validate_minimum_thresholds(
+    metrics: Dict[str, float],
+    config: Dict[str, Any]
+) -> Tuple[bool, List[str]]:
+    """Validate that model meets minimum quality thresholds."""
+    print("\n" + "=" * 60)
+    print("Validating Minimum Quality Thresholds")
+    print("=" * 60)
+    
+    errors = []
+    min_metrics = config.get("evaluation", {}).get("minimum_metrics", {})
+    
+    if not min_metrics:
+        print("⚠ Warning: No minimum thresholds configured")
+        return True, []
+    
+    for metric_name, threshold in min_metrics.items():
+        # Look for validation metric (prefer val_ prefix)
+        val_metric = f"val_{metric_name}"
+        test_metric = f"test_{metric_name}"
+        
+        actual_value = metrics.get(val_metric) or metrics.get(test_metric)
+        
+        if actual_value is None:
+            errors.append(f"Metric '{metric_name}' not found in training summary")
+            print(f"✗ {metric_name}: NOT FOUND")
+            continue
+        
+        passed = actual_value >= threshold
+        status = "✓" if passed else "✗"
+        print(f"{status} {metric_name}: {actual_value:.4f} (threshold: {threshold:.4f})")
+        
+        if not passed:
+            errors.append(
+                f"{metric_name}: {actual_value:.4f} < minimum {threshold:.4f} "
+                f"(deficit: {threshold - actual_value:.4f})"
+            )
+    
+    print("=" * 60)
+    return len(errors) == 0, errors
+
+
+def compare_with_production(
+    new_metrics: Dict[str, float],
+    production_baseline: Dict[str, Any],
+    config: Dict[str, Any]
+) -> Tuple[bool, List[str]]:
+    """Compare new model with production baseline."""
+    print("\n" + "=" * 60)
+    print("Comparing with Production Model")
+    print("=" * 60)
+    
+    errors = []
+    warnings = []
+    
+    prod_metrics = production_baseline.get("best_model_metrics", {})
+    if not prod_metrics:
+        print("⚠ Warning: No metrics in production baseline")
+        return True, []
+    
+    # Get degradation tolerance thresholds
+    degradation_tolerance = config.get("deployment", {}).get(
+        "degradation_tolerance", 
+        {"roc_auc": 0.05, "precision": 0.05, "recall": 0.03, "f1_score": 0.05}
+    )
+    
+    critical_metrics = config.get("deployment", {}).get(
+        "critical_metrics", 
+        ["recall", "roc_auc"]
+    )
+    
+    print(f"Production model: {production_baseline.get('best_model', 'unknown')}")
+    print(f"\nMetric Comparison:")
+    print("-" * 60)
+    
+    for metric_base in ["roc_auc", "precision", "recall", "f1_score"]:
+        val_metric = f"val_{metric_base}"
+        test_metric = f"test_{metric_base}"
+        
+        # Get new model metric
+        new_value = new_metrics.get(val_metric) or new_metrics.get(test_metric)
+        if new_value is None:
+            continue
+        
+        # Get production metric
+        prod_value = prod_metrics.get(val_metric) or prod_metrics.get(test_metric)
+        if prod_value is None:
+            continue
+        
+        # Calculate degradation
+        degradation = (prod_value - new_value) / prod_value if prod_value != 0 else 0
+        tolerance = degradation_tolerance.get(metric_base, 0.05)
+        
+        # Determine status
+        if new_value >= prod_value:
+            status = "✓ IMPROVED"
+            change = f"+{((new_value - prod_value) / prod_value * 100):.2f}%"
+        elif degradation <= tolerance:
+            status = "✓ ACCEPTABLE"
+            change = f"-{(degradation * 100):.2f}%"
+        else:
+            status = "✗ DEGRADED"
+            change = f"-{(degradation * 100):.2f}%"
+        
+        print(f"{status:15} {metric_base:12}: {new_value:.4f} vs {prod_value:.4f} ({change})")
+        
+        # Check if degradation exceeds tolerance
+        if degradation > tolerance:
+            is_critical = metric_base in critical_metrics
+            msg = (
+                f"{metric_base} degraded by {degradation*100:.1f}% "
+                f"(new: {new_value:.4f} vs prod: {prod_value:.4f}, "
+                f"tolerance: {tolerance*100:.0f}%)"
+            )
+            
+            if is_critical:
+                errors.append(f"CRITICAL: {msg}")
+            else:
+                warnings.append(msg)
+    
+    print("-" * 60)
+    
+    # Display warnings
+    if warnings:
+        print("\n⚠ WARNINGS:")
+        for warning in warnings:
+            print(f"  - {warning}")
+    
+    print("=" * 60)
+    return len(errors) == 0, errors
 
 
 def validate_deployment_package() -> Tuple[bool, List[str]]:
@@ -103,27 +270,97 @@ def validate_deployment_package() -> Tuple[bool, List[str]]:
     print("=" * 60)
 
     if all_checks_passed:
-        print("✓ All deployment artifacts validated successfully!")
-        print("=" * 60)
+        print("✓ All deployment artifacts present")
         return True, []
     else:
         print("\n✗ Validation FAILED - Missing required artifacts:")
         for error in errors:
             print(f"  - {error}")
-        print("=" * 60)
         return False, errors
+
+
+def validate_model_quality() -> Tuple[bool, List[str]]:
+    """Validate model quality against thresholds and production baseline."""
+    errors = []
+    
+    # Load training summary
+    training_summary_path = project_root / "data" / "training_summary.json"
+    if not training_summary_path.exists():
+        return False, ["Training summary not found"]
+    
+    try:
+        with open(training_summary_path) as f:
+            summary = json.load(f)
+    except Exception as e:
+        return False, [f"Failed to load training summary: {e}"]
+    
+    new_metrics = summary.get("best_model_metrics", {})
+    if not new_metrics:
+        return False, ["No metrics found in training summary"]
+    
+    # Load configuration
+    config = load_training_config()
+    
+    # Step 1: Validate minimum thresholds
+    threshold_ok, threshold_errors = validate_minimum_thresholds(new_metrics, config)
+    errors.extend(threshold_errors)
+    
+    # Step 2: Compare with production baseline
+    production_baseline = load_production_baseline()
+    if production_baseline:
+        comparison_ok, comparison_errors = compare_with_production(
+            new_metrics, production_baseline, config
+        )
+        errors.extend(comparison_errors)
+    else:
+        print("\nℹ Skipping production comparison (first deployment)")
+    
+    return len(errors) == 0, errors
 
 
 def main() -> None:
     """Run deployment validation."""
-    success, errors = validate_deployment_package()
-
-    if not success:
-        print("\nDeployment package is incomplete. Fix the errors above before deploying.")
-        sys.exit(1)
+    print("\n" + "#" * 60)
+    print("#" + " " * 58 + "#")
+    print("#" + "  DEPLOYMENT VALIDATION & QUALITY GATES".center(58) + "#")
+    print("#" + " " * 58 + "#")
+    print("#" * 60 + "\n")
+    
+    all_errors = []
+    
+    # Step 1: Validate deployment package
+    package_ok, package_errors = validate_deployment_package()
+    all_errors.extend(package_errors)
+    
+    # Step 2: Validate model quality (only if package is complete)
+    if package_ok:
+        quality_ok, quality_errors = validate_model_quality()
+        all_errors.extend(quality_errors)
     else:
-        print("\nDeployment package is ready for production!")
+        print("\n⚠ Skipping quality validation due to missing artifacts")
+        quality_ok = False
+    
+    # Final summary
+    print("\n" + "#" * 60)
+    print("#" + " " * 58 + "#")
+    
+    if package_ok and quality_ok:
+        print("#" + "  ✓ ALL VALIDATIONS PASSED".center(58) + "#")
+        print("#" + " " * 58 + "#")
+        print("#" * 60)
+        print("\n✅ Deployment package is ready for production!")
+        print("🚀 Model meets all quality gates and can be safely deployed.\n")
         sys.exit(0)
+    else:
+        print("#" + "  ✗ VALIDATION FAILED".center(58) + "#")
+        print("#" + " " * 58 + "#")
+        print("#" * 60)
+        print("\n❌ Deployment BLOCKED - Quality gates not met:")
+        print("\nErrors:")
+        for i, error in enumerate(all_errors, 1):
+            print(f"  {i}. {error}")
+        print("\n🛑 Fix the errors above before deploying to production.\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

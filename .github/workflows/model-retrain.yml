@@ -221,6 +221,24 @@ jobs:
         echo "✓ Model committed and pushed to repository"
         echo "🚀 DigitalOcean will automatically deploy on git push detection"
         echo "🌐 Monitor deployment at: https://cloud.digitalocean.com/apps"
+    
+    - name: Store production baseline for future comparisons
+      run: |
+        # Copy current training summary as production baseline
+        cp data/training_summary.json data/production_model_baseline.json
+        
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git add data/production_model_baseline.json
+        
+        # Commit baseline (only if changed)
+        git diff --staged --quiet || git commit -m "chore: update production baseline [skip ci]
+        
+        Storing metrics from deployed model for quality gate comparison.
+        Environment: ${{ needs.determine-environment.outputs.environment }}"
+        
+        git push
+        echo "✓ Production baseline stored for future quality gate validation"
 
   create-release:
     name: Create GitHub Release

@@ -200,6 +200,8 @@ doctl auth init
 
 The deployment automatically:
 - ✅ Trains model in GitHub Actions CI
+- ✅ **Validates model quality gates** (prevents deploying worse models)
+- ✅ Compares against production baseline metrics
 - ✅ Commits trained model to repository with `[skip ci]`
 - ✅ Triggers DigitalOcean auto-deploy via git webhook
 - ✅ Builds Docker container with model

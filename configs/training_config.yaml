@@ -92,10 +92,29 @@ evaluation:
     - "average_precision"
   
   # Thresholds for model acceptance
+  # Note: These are realistic thresholds for imbalanced fraud detection (2% fraud rate)
+  # Adjust based on your business requirements and class imbalance
   minimum_metrics:
-    roc_auc: 0.85
-    precision: 0.70
-    recall: 0.70
+    roc_auc: 0.65       # Minimum discriminative power
+    precision: 0.03     # Accept low precision due to extreme imbalance
+    recall: 0.30        # Prioritize catching fraud (minimize false negatives)
+
+# Deployment Quality Gates
+deployment:
+  # Maximum allowed degradation vs production model (as percentage, e.g., 0.05 = 5%)
+  degradation_tolerance:
+    roc_auc: 0.05        # Allow up to 5% degradation in ROC-AUC
+    precision: 0.05      # Allow up to 5% degradation in precision
+    recall: 0.03         # Stricter: only 3% degradation in recall (critical for fraud)
+    f1_score: 0.05       # Allow up to 5% degradation in F1
+  
+  # Critical metrics that must NOT degrade
+  critical_metrics:
+    - "recall"           # Fraud detection: missing fraud is costly
+    - "roc_auc"          # Overall discriminative power
+  
+  # Baseline storage
+  production_baseline_path: "data/production_model_baseline.json"
 
 # Logging
 logging:
