@@ -147,7 +147,7 @@ git push origin develop
 
 ## Configuration Files
 
-### `app.yaml` - App Platform Specification
+### `.do/app.yaml` - App Platform Specification
 
 Defines the application configuration:
 - **Service name**: `fraud-detection-api`
@@ -158,7 +158,7 @@ Defines the application configuration:
 
 **Upgrade instance size** (if app needs more resources):
 
-Edit `app.yaml`:
+Edit `.do/app.yaml`:
 ```yaml
 instance_size_slug: apps-s-1vcpu-1gb  # $12/mo: 1GB RAM, 1 vCPU
 ```
@@ -206,14 +206,14 @@ doctl apps logs <APP_ID>
 
 ### Issue: "Build failed - Out of memory"
 
-**Solution**: Upgrade instance size in `app.yaml`:
+**Solution**: Upgrade instance size in `.do/app.yaml`:
 ```yaml
 instance_size_slug: apps-s-1vcpu-1gb
 ```
 
 ### Issue: "Deployment timeout"
 
-**Solution**: Increase health check initial delay in `app.yaml`:
+**Solution**: Increase health check initial delay in `.do/app.yaml`:
 ```yaml
 health_check:
   initial_delay_seconds: 90  # Increased from 60
@@ -231,7 +231,7 @@ health_check:
 
 1. **Use smaller instance** for development:
    ```yaml
-   # In app.yaml for staging/dev
+   # In .do/app.yaml for staging/dev
    instance_size_slug: apps-s-1vcpu-0.5gb
    ```
 
@@ -248,7 +248,7 @@ health_check:
 
 ### Custom Domain
 
-1. Add domain in `app.yaml`:
+1. Add domain in `.do/app.yaml`:
    ```yaml
    domains:
    - domain: api.yourdomain.com
@@ -267,7 +267,7 @@ Add secrets in DigitalOcean dashboard:
 
 ### Scaling
 
-Enable auto-scaling in `app.yaml`:
+Enable auto-scaling in `.do/app.yaml`:
 ```yaml
 instance_count: 1
 autoscaling:

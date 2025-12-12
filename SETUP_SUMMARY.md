@@ -2,7 +2,7 @@
 
 ## What Was Implemented
 
-✅ **App Platform Configuration** (`app.yaml`)
+✅ **App Platform Configuration** (`.do/app.yaml`)
 - Fraud detection API service definition
 - Basic tier ($5/mo) with 512MB RAM
 - Health checks on `/health` endpoint
@@ -89,7 +89,7 @@ curl -X POST https://YOUR-APP-URL/predict \
 ## Files Modified/Created
 
 ### New Files
-- `app.yaml` - DigitalOcean App Platform configuration
+- `.do/app.yaml` - DigitalOcean App Platform configuration
 - `DEPLOYMENT_GUIDE.md` - Comprehensive deployment documentation
 - `SETUP_SUMMARY.md` - This quick reference guide
 
