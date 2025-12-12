@@ -74,7 +74,7 @@ class TransactionRequest(BaseModel):
             return None
         # Validate that it's a parseable datetime string
         try:
-            datetime.fromisoformat(value.replace('Z', '+00:00'))
+            datetime.fromisoformat(value.replace("Z", "+00:00"))
             return value
         except (ValueError, AttributeError) as exc:
             raise ValueError(
