@@ -2,9 +2,9 @@ name: MLOps Pipeline
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches: [ main, master, develop, staging ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, staging, develop ]
   schedule:
     # Run drift detection daily at 2 AM UTC
     - cron: '0 2 * * *'
@@ -163,7 +163,7 @@ jobs:
     name: Model Training and Registration
     runs-on: ubuntu-latest
     needs: data-pipeline-validation
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/develop')
     
     steps:
     - uses: actions/checkout@v3
@@ -249,7 +249,7 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: [model-training]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     environment:
       name: staging
       url: https://staging-fraud-detection.example.com
@@ -292,10 +292,57 @@ jobs:
         # curl -f https://staging-fraud-detection.example.com/health || exit 1
         # curl -f https://staging-fraud-detection.example.com/model/info || exit 1
 
+  deploy-dev:
+    name: Deploy to Development
+    runs-on: ubuntu-latest
+    needs: [model-training]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment:
+      name: development
+      url: https://dev-fraud-detection.example.com
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Download deployment package
+      uses: actions/download-artifact@v4
+      with:
+        name: deployment-package
+    
+    - name: Verify deployment artifacts
+      run: |
+        python scripts/validate_deployment.py
+    
+    - name: Deploy to development environment
+      run: |
+        echo "🚀 Deploying to development environment"
+        echo "✓ Model artifacts verified"
+        echo "✓ Configuration validated"
+        # Add your actual deployment commands here
+        # Examples for Google Cloud Run:
+        # gcloud run deploy fraud-detection-dev \
+        #   --source . \
+        #   --region us-central1 \
+        #   --platform managed \
+        #   --allow-unauthenticated \
+        #   --set-env-vars ENVIRONMENT=development
+    
+    - name: Run health check
+      run: |
+        echo "🏥 Running health checks on development deployment"
+        # Add health check commands
+        # curl -f https://dev-fraud-detection.example.com/health || exit 1
+        # curl -f https://dev-fraud-detection.example.com/model/info || exit 1
+
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: model-training
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     environment:
       name: production
