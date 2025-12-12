@@ -153,8 +153,9 @@ def run_training_pipeline(
     model_artifact_path: Optional[Path] = None
     if save_model and best_model is not None and best_model_name is not None:
         output_dir = Path(cfg.get("models", {}).get("output_dir", "models"))
-        trainer.save_model(best_model, f"{best_model_name}_final_model", str(output_dir))
+        output_dir.mkdir(parents=True, exist_ok=True)
         model_artifact_path = output_dir / f"{best_model_name}_final_model.joblib"
+        trainer.save_model(best_model, str(model_artifact_path))
 
     summary = {
         "best_model": best_model_name,
