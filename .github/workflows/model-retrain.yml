@@ -92,7 +92,7 @@ jobs:
         echo "✓ All required data files created"
     
     - name: Upload pipeline artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: pipeline-outputs
         path: data/
@@ -165,7 +165,7 @@ jobs:
         python scripts/validate_deployment.py
     
     - name: Upload trained model artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: trained-models
         path: |
