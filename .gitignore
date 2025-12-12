@@ -120,7 +120,13 @@ mlartifacts/
 *.csv
 *.parquet
 *.pkl
-*.joblib
+
+# Model files
+# NOTE: For this template, model files are committed to git for simple deployment.
+# See DEPLOYMENT_ARTIFACTS.md for the rationale and alternatives.
+# The CI/CD pipeline trains the model and commits it automatically.
+# For production at scale, consider using MLflow Model Registry or S3/Spaces.
+# *.joblib  # Uncomment to ignore model files if using external artifact storage
 
 # OS generated files
 .DS_Store
@@ -138,5 +144,8 @@ logs/
 # Agent work directory
 .agent_work/
 
-
+# Data directory - allow essential deployment files
 data/*
+!data/selected_features.json
+!data/training_summary.json
+!data/.gitkeep
