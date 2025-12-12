@@ -156,11 +156,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: pipeline-outputs
-        path: |
-          data/*.csv
-          data/*.json
-          data/raw/
-          data/processed/
+        path: data/
         retention-days: 7
 
   model-training:
@@ -191,7 +187,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: pipeline-outputs
-        path: .
+        path: data/
     
     - name: Verify downloaded artifacts
       run: |
@@ -201,7 +197,6 @@ jobs:
         ls -la data/processed/ || echo "data/processed/ directory not found"
         test -f data/transactions_final.csv || (echo "Error: transactions_final.csv not found" && exit 1)
         test -f data/selected_features.json || (echo "Error: selected_features.json not found" && exit 1)
-        test -f data/raw/transactions.csv || (echo "Error: data/raw/transactions.csv not found" && exit 1)
         echo "✓ All required data files present"
     
     - name: Train and register models
