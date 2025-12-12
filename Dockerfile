@@ -20,15 +20,15 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY src/ ./src/
 COPY configs/ ./configs/
-COPY scripts/serve_model.py ./scripts/
+COPY scripts/ ./scripts/
 
-# Copy model artifacts and feature metadata (for production deployment)
-# These should be included in the deployment package
-COPY models/*.joblib ./models/ 2>/dev/null || echo "No models to copy (will be mounted at runtime)"
-COPY data/selected_features.json ./data/ 2>/dev/null || echo "No feature metadata to copy (will be mounted at runtime)"
+# Create necessary directories
+RUN mkdir -p logs
 
-# Create necessary directories for runtime
-RUN mkdir -p logs data models
+# Copy model and data files (these exist from CI/CD pipeline)
+COPY models/ ./models/
+COPY data/selected_features.json ./data/
+COPY data/training_summary.json ./data/
 
 # Set environment variables
 ENV PYTHONPATH=/app

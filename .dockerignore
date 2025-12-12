@@ -49,17 +49,14 @@ tests/
 test_*.py
 *_test.py
 
-# Data files (mount as volumes in production instead of copying)
+# Data files - exclude large data files but keep deployment artifacts
 data/raw/
+data/processed/
 data/inference_results/
 data/drift_alerts/
-*.csv
-*.parquet
-*.pkl
+data/transactions*.csv
 
-# Models (mount as volumes in production for easier updates)
-models/
-*.joblib
+# Models - keep joblib files for deployment
 
 # MLflow artifacts (use volume mounts instead)
 mlruns/
