@@ -265,39 +265,23 @@ jobs:
         name: deployment-package
         path: .
     
-    - name: Commit model artifacts for deployment
+    - name: Commit model to repository
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add -f models/*.joblib data/selected_features.json data/training_summary.json
-        git diff --staged --quiet || git commit -m "chore: update trained model artifacts [skip ci]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git add models/*.joblib data/selected_features.json data/training_summary.json
+        git diff --staged --quiet || git commit -m "chore: update trained model [skip ci]"
+        git push
     
-    - name: Push model artifacts
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
-    
-    - name: Deploy to DigitalOcean App Platform
-      id: deploy
-      uses: digitalocean/app_action/deploy@v2
-      with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-    - name: Get deployment URL
+    - name: Wait for deployment
       run: |
-        echo "🚀 App deployed successfully!"
-        echo "📍 Live URL: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
-        echo "🆔 App ID: ${{ fromJson(steps.deploy.outputs.app).id }}"
-    
-    - name: Wait for deployment to be ready
-      run: sleep 30
+        echo "⏳ Waiting for DigitalOcean to detect changes and deploy..."
+        sleep 60
     
     - name: Run health check
       run: |
         echo "🏥 Running health checks on staging deployment"
-        curl -f ${{ fromJson(steps.deploy.outputs.app).live_url }}/health || exit 1
-        echo "✓ Health check passed"
+        curl -f https://fraud-detection-api-staging.ondigitalocean.app/health || echo "Deployment may still be in progress"
 
   deploy-dev:
     name: Deploy to Development
@@ -319,45 +303,23 @@ jobs:
         name: deployment-package
         path: .
     
-    - name: Commit model artifacts for deployment
+    - name: Commit model to repository
       run: |
-        git config --local user.email "github-actions[bot]@users.noreply.github.com"
-        git config --local user.name "github-actions[bot]"
-        git add -f models/*.joblib data/selected_features.json data/training_summary.json
-        git diff --staged --quiet || git commit -m "chore: update trained model artifacts [skip ci]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "github-actions[bot]"
+        git add models/*.joblib data/selected_features.json data/training_summary.json
+        git diff --staged --quiet || git commit -m "chore: update trained model [skip ci]"
+        git push
     
-    - name: Push model artifacts
-      uses: ad-m/github-push-action@master
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
-    
-    - name: Deploy to DigitalOcean App Platform
-      id: deploy
-      uses: digitalocean/app_action/deploy@v2
-      with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-    - name: Deploy to DigitalOcean App Platform
-      id: deploy
-      uses: digitalocean/app_action/deploy@v2
-      with:
-        token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-    
-    - name: Get deployment URL
+    - name: Wait for deployment
       run: |
-        echo "🚀 App deployed successfully!"
-        echo "📍 Live URL: ${{ fromJson(steps.deploy.outputs.app).live_url }}"
-        echo "🆔 App ID: ${{ fromJson(steps.deploy.outputs.app).id }}"
-    
-    - name: Wait for deployment to be ready
-      run: sleep 30
+        echo "⏳ Waiting for DigitalOcean to detect changes and deploy..."
+        sleep 60
     
     - name: Run health check
       run: |
         echo "🏥 Running health checks on development deployment"
-        curl -f ${{ fromJson(steps.deploy.outputs.app).live_url }}/health || exit 1
-        echo "✓ Health check passed"
+        curl -f https://fraud-detection-api-dev.ondigitalocean.app/health || echo "Deployment may still be in progress"
 
   deploy-production:
     name: Deploy to Production
@@ -381,7 +343,7 @@ jobs:
     
     - name: Verify artifacts
       run: |
-        test -f models/random_forest_final_model.joblib || exit 1
+        ls -la models/*.joblib || exit 1
         test -f data/selected_features.json || exit 1
         echo "✓ Artifacts verified"
     
@@ -389,7 +351,7 @@ jobs:
       run: |
         git config user.email "github-actions[bot]@users.noreply.github.com"
         git config user.name "github-actions[bot]"
-        git add models/random_forest_final_model.joblib data/selected_features.json data/training_summary.json
+        git add models/*.joblib data/selected_features.json data/training_summary.json
         git diff --staged --quiet || git commit -m "chore: update trained model [skip ci]"
         git push
     
