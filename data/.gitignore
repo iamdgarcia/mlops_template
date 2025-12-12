@@ -36,6 +36,7 @@
 # Keep essential deployment files
 !selected_features.json
 !processing_config.json
+!training_summary.json
 
 # Subdirectories - apply same rules
 raw/*.csv
