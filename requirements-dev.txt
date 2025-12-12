@@ -30,7 +30,7 @@ seaborn~=0.12.0        # Statistical visualization
 plotly~=5.15.0         # Interactive visualizations
 
 ## Documentation
-mkdocs~=1.5.0          # Documentation generator (optional)
+mkdocs~=1.6.1          # Documentation generator (optional)
 mkdocs-material~=9.1.0 # Material theme for MkDocs (optional)
 
 ## Security and Vulnerability Scanning
