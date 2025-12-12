@@ -159,6 +159,8 @@ jobs:
         path: |
           data/*.csv
           data/*.json
+          data/raw/
+          data/processed/
         retention-days: 7
 
   model-training:
@@ -181,18 +183,44 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
+    - name: Create necessary directories
+      run: |
+        mkdir -p data mlruns models logs
+    
     - name: Download pipeline artifacts
       uses: actions/download-artifact@v4
       with:
         name: pipeline-outputs
+        path: .
     
-    - name: Create necessary directories
+    - name: Verify downloaded artifacts
       run: |
-        mkdir -p mlruns models logs
+        echo "Checking for downloaded data files..."
+        ls -la data/ || echo "data/ directory not found"
+        ls -la data/raw/ || echo "data/raw/ directory not found"
+        ls -la data/processed/ || echo "data/processed/ directory not found"
+        test -f data/transactions_final.csv || (echo "Error: transactions_final.csv not found" && exit 1)
+        test -f data/selected_features.json || (echo "Error: selected_features.json not found" && exit 1)
+        test -f data/raw/transactions.csv || (echo "Error: data/raw/transactions.csv not found" && exit 1)
+        echo "✓ All required data files present"
     
     - name: Train and register models
+      env:
+        # Use pre-processed data from artifacts instead of regenerating
+        # This speeds up CI by skipping data generation and feature engineering
+        USE_PREPROCESSED_DATA: "true"
       run: |
         python scripts/run_training.py
+    
+    - name: Verify model was created
+      run: |
+        echo "Checking for trained model..."
+        ls -la models/ || echo "models/ directory not found"
+        if [ ! -f models/*_final_model.joblib ]; then
+          echo "Error: No model file found after training"
+          exit 1
+        fi
+        echo "✓ Model file created successfully"
     
     - name: Validate deployment package
       run: |

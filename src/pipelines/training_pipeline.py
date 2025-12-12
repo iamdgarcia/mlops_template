@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
+
+import pandas as pd
 
 from ..config import setup_logging
+from ..data_processing import DataProcessor
 from ..train import ModelTrainer
 from .data_pipeline import load_config, run_data_preparation
 
@@ -17,19 +21,106 @@ def _score_model(metrics: Dict[str, Any]) -> float:
     return float(val_auc) if val_auc is not None else float(metrics.get("train_roc_auc", 0.0))
 
 
+def load_preprocessed_splits(
+    config: Optional[Dict[str, Any]] = None,
+) -> Tuple[Dict[str, Tuple[pd.DataFrame, pd.Series]], list]:
+    """
+    Load pre-processed train/val/test splits from disk for CI/CD environments.
+
+    This function is optimized for CI/CD pipelines where data has already been
+    prepared and artifacts are available. It skips data generation and feature
+    engineering, directly loading the processed datasets.
+
+    Args:
+        config: Optional configuration dictionary
+
+    Returns:
+        Tuple of (splits_dict, feature_names) where splits_dict contains
+        (X, y) tuples for each split
+    """
+    cfg = load_config(config)
+
+    # Load feature metadata
+    feature_metadata_path = Path("data/selected_features.json")
+    if not feature_metadata_path.exists():
+        raise FileNotFoundError(
+            f"Feature metadata not found at {feature_metadata_path}. "
+            "Ensure data pipeline has run and artifacts are available."
+        )
+
+    with open(feature_metadata_path) as f:
+        metadata = json.load(f)
+        feature_names = metadata.get("selected_features", metadata.get("features", []))
+
+    # Load processed datasets
+    data_processor = DataProcessor(cfg)
+    datasets = data_processor.load_processed_data()
+
+    if not datasets:
+        raise FileNotFoundError(
+            "No processed datasets found. Ensure data pipeline has run and "
+            "artifacts are in data/processed/ directory."
+        )
+
+    # Prepare splits with feature separation
+    target_column = cfg.get("features", {}).get("target_column", "is_fraud")
+    splits: Dict[str, Tuple[pd.DataFrame, pd.Series]] = {}
+
+    for split_name, df in datasets.items():
+        if target_column not in df.columns:
+            raise ValueError(f"Target column '{target_column}' not found in {split_name} dataset")
+
+        # Get features that exist in both the metadata and the dataframe
+        available_features = [f for f in feature_names if f in df.columns]
+
+        X = df[available_features]
+        y = df[target_column]
+        splits[split_name] = (X, y)
+
+    return splits, feature_names
+
+
 def run_training_pipeline(
     config: Optional[Dict[str, Any]] = None,
     *,
     regenerate_data: bool = False,
     persist_data: bool = True,
     save_model: bool = True,
+    use_preprocessed: bool = False,
 ) -> Dict[str, Any]:
-    """Execute the full training workflow and return artefact metadata."""
+    """
+    Execute the full training workflow and return artefact metadata.
+
+    Args:
+        config: Optional configuration dictionary
+        regenerate_data: Force regeneration of raw data
+        persist_data: Save intermediate data artifacts
+        save_model: Save the trained model to disk
+        use_preprocessed: Use pre-processed data from disk (CI/CD mode).
+                         When True, skips data generation and feature engineering.
+                         Set via USE_PREPROCESSED_DATA env var or explicitly.
+
+    Returns:
+        Dictionary containing training results and metadata
+    """
 
     cfg = load_config(config)
     setup_logging(cfg)
 
-    data_outputs = run_data_preparation(cfg, regenerate_data=regenerate_data, persist=persist_data)
+    # Check environment variable for CI/CD mode
+    if use_preprocessed or os.getenv("USE_PREPROCESSED_DATA", "").lower() in ("1", "true", "yes"):
+        print("📦 Using pre-processed data from artifacts (CI/CD mode)")
+        splits, feature_names = load_preprocessed_splits(cfg)
+        data_outputs = {
+            "feature_names": feature_names,
+            "splits": splits,
+        }
+    else:
+        print("🔄 Running full data preparation pipeline")
+        data_outputs = run_data_preparation(
+            cfg, regenerate_data=regenerate_data, persist=persist_data
+        )
+
     splits = data_outputs["splits"]
 
     X_train, y_train = splits["train"]
