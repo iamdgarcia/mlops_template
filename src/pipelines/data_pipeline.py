@@ -91,7 +91,7 @@ def run_data_preparation(
         split_payload[name] = (X_split, y_split)
 
     if persist:
-        _persist_outputs(cfg, cleaned_df, splits, feature_list)
+        _persist_outputs(cfg, raw_df, cleaned_df, features_df, splits, feature_list)
 
     return {
         "raw": raw_df,
@@ -104,7 +104,9 @@ def run_data_preparation(
 
 def _persist_outputs(
     config: Dict[str, Any],
+    raw_df: pd.DataFrame,
     cleaned_df: pd.DataFrame,
+    features_df: pd.DataFrame,
     splits: Tuple[pd.DataFrame, ...],
     feature_names: Any,
 ) -> None:
@@ -136,3 +138,12 @@ def _persist_outputs(
         "created_at": pd.Timestamp.utcnow().isoformat(),
     }
     feature_metadata_path.write_text(json.dumps(feature_metadata, indent=2))
+
+    # Save backward-compatible files for GitHub Actions and legacy scripts
+    data_dir = Path("data")
+    data_dir.mkdir(parents=True, exist_ok=True)
+    
+    raw_df.to_csv(data_dir / "transactions_raw.csv", index=False)
+    cleaned_df.to_csv(data_dir / "transactions_processed.csv", index=False)
+    features_df.to_csv(data_dir / "transactions_final.csv", index=False)
+
