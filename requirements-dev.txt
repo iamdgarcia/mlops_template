@@ -31,7 +31,7 @@ plotly~=5.15.0         # Interactive visualizations
 
 ## Documentation
 mkdocs~=1.5.0          # Documentation generator (optional)
-mkdocs-material~=9.1.0 # Material theme for MkDocs (optional)
+mkdocs-material~=9.7.0 # Material theme for MkDocs (optional)
 
 ## Security and Vulnerability Scanning
 safety~=2.3.0          # Dependency vulnerability scanner
