@@ -65,7 +65,7 @@ jobs:
     needs: determine-environment
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.determine-environment.outputs.branch }}
     
@@ -111,7 +111,7 @@ jobs:
       model-metrics: ${{ steps.train.outputs.metrics }}
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.determine-environment.outputs.branch }}
     
@@ -185,7 +185,7 @@ jobs:
     needs: [determine-environment, model-training]
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.determine-environment.outputs.branch }}
         token: ${{ secrets.GITHUB_TOKEN }}
@@ -247,7 +247,7 @@ jobs:
     if: inputs.create_release == true
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
       with:
         ref: ${{ needs.determine-environment.outputs.branch }}
         fetch-depth: 0
