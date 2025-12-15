@@ -7,12 +7,12 @@ This document explains the technical architecture and mechanics of deploying the
 **Deployment Method**: Automatic deployment via git push (DigitalOcean webhook)
 
 **Why auto-deploy?**
-- ✅ Simpler setup - no API tokens or secrets to manage
-- ✅ DigitalOcean handles the entire deployment lifecycle
-- ✅ Git-based workflow aligns with standard practices
-- ✅ Automatic deployments on every push to tracked branches
-- ✅ No GitHub Actions secrets required after initial setup
-- ✅ Easier to maintain and audit
+-  Simpler setup - no API tokens or secrets to manage
+-  DigitalOcean handles the entire deployment lifecycle
+-  Git-based workflow aligns with standard practices
+-  Automatic deployments on every push to tracked branches
+-  No GitHub Actions secrets required after initial setup
+-  Easier to maintain and audit
 
 ## Architecture Diagram
 
@@ -29,7 +29,7 @@ This document explains the technical architecture and mechanics of deploying the
 │  1. Security scan           │  │  1. Select environment (manual)  │
 │  2. Code quality checks     │  │  2. Run data pipeline            │
 │  3. Unit tests              │  │  3. Train model                  │
-│  4. ✅ Pass/Fail feedback   │  │  4. Commit model to git [skip ci]│
+│  4.  Pass/Fail feedback   │  │  4. Commit model to git [skip ci]│
 │                             │  │  5. Push to repository           │
 │  NO model training          │  │  6. Optional: Create release     │
 │  NO deployment              │  │                                  │
@@ -161,11 +161,11 @@ git push origin develop  # Triggers CI workflow only
 ```
 
 GitHub Actions runs CI workflow (`.github/workflows/ci.yml`):
-- ✅ Security scans
-- ✅ Code quality checks  
-- ✅ Unit tests
-- ❌ NO model training
-- ❌ NO deployment
+-  Security scans
+-  Code quality checks  
+-  Unit tests
+-  NO model training
+-  NO deployment
 
 **Fast feedback** - completes in 2-3 minutes
 
@@ -348,29 +348,29 @@ doctl auth init
 
 **What it does:**
 
-1. ✅ Validates prerequisites (doctl installed, authenticated, spec file exists)
-2. ✅ Creates production app from `.do/app.yaml`
-3. ✅ Creates staging app (modified for `staging` branch)
-4. ✅ Creates development app (modified for `develop` branch)
-5. ✅ Retrieves app IDs and URLs
-6. ✅ Generates `.env.digitalocean` with all configuration
-7. ✅ Displays setup instructions
+1.  Validates prerequisites (doctl installed, authenticated, spec file exists)
+2.  Creates production app from `.do/app.yaml`
+3.  Creates staging app (modified for `staging` branch)
+4.  Creates development app (modified for `develop` branch)
+5.  Retrieves app IDs and URLs
+6.  Generates `.env.digitalocean` with all configuration
+7.  Displays setup instructions
 
 **Output:**
 ```
-📦 Production App
+ Production App
    Name: fraud-detection-api
    ID:   abc123...
    URL:  https://fraud-detection-api-xxxxx.ondigitalocean.app
    Branch: master
 
-📦 Staging App
+ Staging App
    Name: fraud-detection-api-staging
    ID:   def456...
    URL:  https://fraud-detection-api-staging-xxxxx.ondigitalocean.app
    Branch: staging
 
-📦 Development App
+ Development App
    Name: fraud-detection-api-dev
    ID:   ghi789...
    URL:  https://fraud-detection-api-dev-xxxxx.ondigitalocean.app
@@ -521,30 +521,30 @@ git commit -m "chore: rollback to previous model [skip ci]"
 ### Current Approach: Auto-Deploy (Git-based)
 
 **Advantages:**
-- ✅ Simpler setup (no deploy action needed)
-- ✅ DigitalOcean handles entire lifecycle
-- ✅ No secrets needed in GitHub Actions
-- ✅ Standard git-based workflow
-- ✅ Easier to maintain and audit
+-  Simpler setup (no deploy action needed)
+-  DigitalOcean handles entire lifecycle
+-  No secrets needed in GitHub Actions
+-  Standard git-based workflow
+-  Easier to maintain and audit
 
 **Trade-offs:**
-- ⚠️ Webhook detection delays (30-90 seconds)
-- ⚠️ Less visibility into deployment status from GitHub Actions
-- ⚠️ Must check DigitalOcean dashboard for deployment progress
+-  Webhook detection delays (30-90 seconds)
+-  Less visibility into deployment status from GitHub Actions
+-  Must check DigitalOcean dashboard for deployment progress
 
 ### Alternative: Explicit Deployment (GitHub Actions)
 
 **Advantages:**
-- ✅ Immediate deployment after model training
-- ✅ Clear deployment status in GitHub Actions logs
-- ✅ Can run health checks directly in workflow
-- ✅ Easier debugging with action logs
+-  Immediate deployment after model training
+-  Clear deployment status in GitHub Actions logs
+-  Can run health checks directly in workflow
+-  Easier debugging with action logs
 
 **Trade-offs:**
-- ⚠️ Requires DIGITALOCEAN_ACCESS_TOKEN in GitHub
-- ⚠️ Requires APP_URL secrets for health checks
-- ⚠️ More complex workflow
-- ⚠️ Potential for double-deployment if both enabled
+-  Requires DIGITALOCEAN_ACCESS_TOKEN in GitHub
+-  Requires APP_URL secrets for health checks
+-  More complex workflow
+-  Potential for double-deployment if both enabled
 
 ---
 

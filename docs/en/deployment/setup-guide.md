@@ -16,7 +16,7 @@ The deployment uses:
 
 1. **GitHub Repository**: Code pushed to GitHub
 2. **DigitalOcean Account**: Sign up at [cloud.digitalocean.com](https://m.do.co/c/eddc62174250)
-   - 💰 **New users get $200 in free credits for 60 days!**
+   -  **New users get $200 in free credits for 60 days!**
    - More than enough to run this project for the entire course
 3. **doctl CLI**: DigitalOcean command-line tool ([installation guide](https://docs.digitalocean.com/reference/doctl/how-to/install/)) - for initial app setup only
 
@@ -33,11 +33,11 @@ doctl auth init
 ```
 
 This script will:
-1. ✅ Create three apps (production, staging, development)
-2. ✅ Configure each app with the correct GitHub branch and auto-deploy
-3. ✅ Authorize GitHub repository access
-4. ✅ Generate app URLs and IDs
-5. ✅ Create `.env.digitalocean` file with all configuration
+1.  Create three apps (production, staging, development)
+2.  Configure each app with the correct GitHub branch and auto-deploy
+3.  Authorize GitHub repository access
+4.  Generate app URLs and IDs
+5.  Create `.env.digitalocean` file with all configuration
 
 **After running the script**, deployment is ready! Just push to `master`, `staging`, or `develop` to trigger automatic deployment.
 
@@ -131,9 +131,9 @@ The pipeline supports three environments:
 
 | Branch | Environment | URL Pattern | Auto-Deploy |
 |--------|-------------|-------------|-------------|
-| `master` | Production | `fraud-detection-api.ondigitalocean.app` | ✅ Yes |
-| `staging` | Staging | `fraud-detection-api-staging.ondigitalocean.app` | ✅ Yes |
-| `develop` | Development | `fraud-detection-api-dev.ondigitalocean.app` | ✅ Yes |
+| `master` | Production | `fraud-detection-api.ondigitalocean.app` |  Yes |
+| `staging` | Staging | `fraud-detection-api-staging.ondigitalocean.app` |  Yes |
+| `develop` | Development | `fraud-detection-api-dev.ondigitalocean.app` |  Yes |
 
 **Deploy to staging:**
 ```bash
@@ -319,4 +319,4 @@ For course-related questions or deployment issues:
 - [ ] Tested API health endpoint
 - [ ] Accessed Swagger UI documentation
 
-**Deployment successful!** 🚀
+**Deployment successful!** 

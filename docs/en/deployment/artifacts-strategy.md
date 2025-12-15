@@ -10,7 +10,7 @@ When deploying ML models, we face a key question: **How do we get the trained mo
 
 ### Options Considered
 
-1. **Commit models to Git** ✅ (Current approach)
+1. **Commit models to Git**  (Current approach)
    - Pros: Simple, works with all CI/CD systems, version controlled
    - Cons: Git isn't optimized for large binary files
    
@@ -181,11 +181,11 @@ To migrate from Git commits to artifact storage:
 
 For this MLOps template, **Git commits provide the best balance of simplicity and functionality**. The approach is:
 
-✅ Easy to understand  
-✅ Easy to replicate  
-✅ Version controlled  
-✅ No external dependencies  
-✅ Works with free tier services  
+ Easy to understand  
+ Easy to replicate  
+ Version controlled  
+ No external dependencies  
+ Works with free tier services  
 
 This makes it ideal for learning, teaching, and small production deployments.
 

@@ -46,12 +46,12 @@ The MLOps pipeline has been refactored into three separate, focused workflows fo
 
 ## Key Benefits
 
-✅ **Faster CI**: Code changes get test feedback in 2-3 minutes
-✅ **Controlled Model Updates**: Retrain only when needed, manually triggered
-✅ **Environment Selection**: Deploy to dev/staging/prod as needed
-✅ **No Secrets Required**: Auto-deploy via git webhook
-✅ **Proactive Monitoring**: Daily drift detection with alerts
-✅ **Model Versioning**: Optional GitHub releases with artifacts
+ **Faster CI**: Code changes get test feedback in 2-3 minutes
+ **Controlled Model Updates**: Retrain only when needed, manually triggered
+ **Environment Selection**: Deploy to dev/staging/prod as needed
+ **No Secrets Required**: Auto-deploy via git webhook
+ **Proactive Monitoring**: Daily drift detection with alerts
+ **Model Versioning**: Optional GitHub releases with artifacts
 
 ## How to Use
 
@@ -92,7 +92,7 @@ git push origin develop
 ## Deployment Flow
 
 ```
-Developer Push → CI (tests) ✓
+Developer Push → CI (tests) 
                  ↓
             (code is good)
                  ↓
@@ -106,7 +106,7 @@ Manual Trigger → Model Retrain
                  ↓
         DO Webhook Detects
                  ↓
-         Auto-Deploy ✓
+         Auto-Deploy 
 ```
 
 ## Example Workflow Run

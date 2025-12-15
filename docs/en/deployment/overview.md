@@ -36,13 +36,13 @@ This document provides a high-level overview of the deployment architecture. For
 
 ## Key Features
 
-✅ **Git-based Auto-Deploy**: Automatic deployment on git push - no secrets required  
-✅ **Model Versioning**: Models committed to git for version control  
-✅ **Zero-downtime**: DigitalOcean handles blue-green deployment  
-✅ **Health Checks**: Automated validation after deployment  
-✅ **Multi-environment**: Production, Staging, Development  
-✅ **Cost-effective**: ~$5/month (FREE with $200 credit)  
-✅ **Simple Setup**: No API tokens or secrets to manage after initial setup
+ **Git-based Auto-Deploy**: Automatic deployment on git push - no secrets required  
+ **Model Versioning**: Models committed to git for version control  
+ **Zero-downtime**: DigitalOcean handles blue-green deployment  
+ **Health Checks**: Automated validation after deployment  
+ **Multi-environment**: Production, Staging, Development  
+ **Cost-effective**: ~$5/month (FREE with $200 credit)  
+ **Simple Setup**: No API tokens or secrets to manage after initial setup
 
 ## Initial Setup
 
@@ -152,4 +152,4 @@ Before your first deployment:
 
 ---
 
-💡 **Pro Tip**: Bookmark this page for quick reference during the course!
+ **Pro Tip**: Bookmark this page for quick reference during the course!

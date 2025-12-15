@@ -2,11 +2,11 @@
 
 Complete documentation for the Fraud Detection MLOps Pipeline project.
 
-## 📖 Documentation Guide
+##  Documentation Guide
 
 Follow this reading order for a complete understanding of the project:
 
-### 1️⃣ Getting Started (Start Here!)
+### 1 Getting Started (Start Here!)
 
 **New to the project? Start here:**
 
@@ -18,7 +18,7 @@ Follow this reading order for a complete understanding of the project:
 
 ---
 
-### 2️⃣ Deployment
+### 2 Deployment
 
 **Setting up production deployment:**
 
@@ -33,7 +33,7 @@ Follow this reading order for a complete understanding of the project:
 
 ---
 
-### 3️⃣ API Usage
+### 3 API Usage
 
 **Working with the deployed API:**
 
@@ -41,25 +41,25 @@ Follow this reading order for a complete understanding of the project:
 
 ---
 
-### 4️⃣ Development
+### 4 Development
 
 **For contributors and developers:**
 
 1. **[Architecture](architecture.md)** - System architecture and design decisions
-2. **[Changelog](../CHANGELOG.md)** - Version history and changes
+2. **[Changelog](CHANGELOG.md)** - Version history and changes
 
 ---
 
-## 🚀 Quick Links
+##  Quick Links
 
 ### For First-Time Users
-- **I want to understand what this project does** → [README](../README.md)
+- **I want to understand what this project does** → [README](overview.md)
 - **I want to run the project locally** → [Quick Start](getting-started/quick-start.md)
 - **I want to deploy to production** → [Setup Guide](deployment/setup-guide.md)
 
 ### For Developers
 - **I want to understand the architecture** → [Architecture](architecture.md)
-- **I want to contribute** → [README](../README.md#contributing)
+- **I want to contribute** → [README](overview.md#contributing)
 - **I need to troubleshoot** → [Troubleshooting](deployment/troubleshooting.md)
 
 ### For Operations
@@ -69,7 +69,7 @@ Follow this reading order for a complete understanding of the project:
 
 ---
 
-## 📁 Documentation Structure
+##  Documentation Structure
 
 ```
 docs/
@@ -99,10 +99,10 @@ docs/
 
 ---
 
-## 🎯 Learning Paths
+##  Learning Paths
 
 ### Path 1: User Journey (Just want to use the API)
-1. [README](../README.md) - Overview
+1. [README](overview.md) - Overview
 2. [Quick Start](getting-started/quick-start.md) - Setup
 3. [API Guide](api/guide.md) - Usage
 
@@ -111,7 +111,7 @@ docs/
 ---
 
 ### Path 2: Deployment Journey (Want to deploy your own)
-1. [README](../README.md) - Overview
+1. [README](overview.md) - Overview
 2. [Requirements](getting-started/requirements.md) - Prerequisites
 3. [Deployment Overview](deployment/overview.md) - Architecture
 4. [Setup Guide](deployment/setup-guide.md) - Step-by-step setup
@@ -122,7 +122,7 @@ docs/
 ---
 
 ### Path 3: Developer Journey (Want to contribute or customize)
-1. [README](../README.md) - Overview
+1. [README](overview.md) - Overview
 2. [Architecture](architecture.md) - System design
 3. [User Guide](getting-started/user-guide.md) - Features and usage
 4. [Deployment Mechanics](DEPLOYMENT_MECHANICS.md) - CI/CD workflows
@@ -132,7 +132,7 @@ docs/
 
 ---
 
-## 🔄 Workflow Overview
+##  Workflow Overview
 
 ### Continuous Integration (CI)
 Every code push triggers automated testing:
@@ -159,7 +159,7 @@ Automatic drift detection:
 
 ---
 
-## 📚 External Resources
+##  External Resources
 
 - **DigitalOcean Docs**: https://docs.digitalocean.com/products/app-platform/
 - **GitHub Actions**: https://docs.github.com/en/actions
@@ -168,7 +168,7 @@ Automatic drift detection:
 
 ---
 
-## ❓ Need Help?
+##  Need Help?
 
 1. **Check the docs** - Most questions are answered here
 2. **Search issues** - Someone may have had the same problem
@@ -177,7 +177,7 @@ Automatic drift detection:
 
 ---
 
-## 🔖 Quick Reference Card
+##  Quick Reference Card
 
 | Task | Documentation |
 |------|---------------|
